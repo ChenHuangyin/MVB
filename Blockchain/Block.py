@@ -1,4 +1,5 @@
 import json
+
 from Blockchain import Transaction
 
 
@@ -12,3 +13,11 @@ class Block:
     def getJson(self):
         jsonObj = {"tx": self.tx.getJson(), "prev": self.prev, "nonce": self.nonce, "pow": self.pow}
         return json.dumps(jsonObj)
+
+
+class BlockTreeNode:
+    def __init__(self, prevBlock, nowBlock: Block, nextBlock, blockHeight: int):
+        self.prevBlock = prevBlock
+        self.nowBlock = nowBlock
+        self.nextBlock = nextBlock
+        self.blockHeight = blockHeight
