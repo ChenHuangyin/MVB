@@ -13,17 +13,20 @@ class Node:
         self.receivedBlockQueue = Queue()  # storage the received Block from other Node
         self.miningTxQueue = Queue()  # storage the waiting Tx
 
-    def broadcastNewBlock(self, newBlock: Block):
+    def broadcastNewBlock(self, newBlock: Block):  # broadcast the new mined block to the whole network
         for node in self.allNodeList:
             node.receivedBlockQueue.put(newBlock)
 
-    def updateNewBlock(self, newBlock: Block):
+    def updateNewBlock(self, newBlock: Block):  # put the received new block into the ledger
         pass
 
-    def mining(self, prevBlock: Block, tx: Transaction):
+    def mineBlock(self, prevBlock: Block, tx: Transaction):  # mine a new block with the only one tx
         pass
 
-    def verify(self) -> bool:
+    def verifyTx(self) -> bool:  # verify a Tx
+        pass
+
+    def verifyBlock(self) -> bool:  # verify a block
         return self.__verifyNumberNotAlreadyExist() & self.__verifyTxStructure() & self.__verifyPow() & self.__verifyPreHash()
 
     def __verifyNumberNotAlreadyExist(self) -> bool:
@@ -32,8 +35,8 @@ class Node:
     def __verifyTxStructure(self) -> bool:
         pass
 
-    def __verifyPow(self) -> bool:
-        pass
+    def __verifyPow(self, newBlock: Block) -> bool:
+        return newBlock.pow <= 0x07FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
 
     def __verifyPreHash(self) -> bool:
         pass
