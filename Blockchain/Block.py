@@ -14,6 +14,10 @@ class Block:
         jsonObj = {"tx": self.tx.getJson(), "prev": self.prev, "nonce": self.nonce, "pow": self.pow}
         return json.dumps(jsonObj)
 
+    def toString(self):
+        itemList = [self.tx.toString(), str(self.prev), str(self.nonce), str(self.pow)]
+        return ''.join(itemList)
+
 
 class BlockTreeNode:
     def __init__(self, prevBlock, nowBlock: Block, nextBlock, blockHeight: int):
