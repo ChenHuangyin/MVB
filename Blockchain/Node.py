@@ -10,7 +10,7 @@ from hashlib import sha256
 
 
 class Node:
-    def __init__(self, genesisBlock: Block, nodeID: str):
+    def __init__(self, genesisBlock: Block, nodeID: str) -> None:
         # initial the first block into genesisBlock
         self.latestBlockTreeNode = BlockTreeNode(None, genesisBlock, 1)
         self.ledger = [self.latestBlockTreeNode]  # blocks array, type: List[BlockTreeNode]
@@ -18,15 +18,14 @@ class Node:
         self.allNodeList = []  # all the Nodes in the blockchain network
         self.receivedBlockQueue = Queue()  # storage the received Block from other Node
         self.miningDifficulty = 0x07FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
-
         self.globalTxPool = []
 
-    def broadcastNewBlock(self, newBlock: Block):  # broadcast the new mined block to the whole network
+    def broadcastNewBlock(self, newBlock: Block) -> None:  # broadcast the new mined block to the whole network
         for networkNode in self.allNodeList:
             if networkNode != self:
                 networkNode.receivedBlockQueue.put(newBlock)
 
-    def receiveBroadcastBlock(self):
+    def receiveBroadcastBlock(self) -> None:
         if self.receivedBlockQueue.empty():
             return
         else:
@@ -93,11 +92,11 @@ class Node:
                     self.__broadcastTxPool(pBlockTreeNode.nowBlock.tx)
                     pBlockTreeNode = pBlockTreeNode.prevBlockTreeNode
 
-    def __broadcastTxPool(self, tx: Transaction):
+    def __broadcastTxPool(self, tx: Transaction) -> None:
         for networkNode in self.allNodeList:
             networkNode.globalTxPool.append(tx)
 
-    def __getIntersection(self, treeNode1: BlockTreeNode, treeNode2: BlockTreeNode):
+    def __getIntersection(self, treeNode1: BlockTreeNode, treeNode2: BlockTreeNode) -> BlockTreeNode:
         p1, p2 = treeNode1, treeNode2
         if not p1 or not p2:
             return None
