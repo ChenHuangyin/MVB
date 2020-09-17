@@ -1,4 +1,5 @@
 import logging
+import coloredlogs
 
 from nacl.signing import VerifyKey
 from nacl.encoding import HexEncoder
@@ -10,6 +11,8 @@ from queue import Queue
 from hashlib import sha256
 from typing import List
 
+
+coloredlogs.install()
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 log = logging.getLogger(__name__)
 
@@ -91,6 +94,11 @@ class Node:
         for treeNode in self.ledger:
             jsonObj["Blocks"].append(treeNode.nowBlock.getJsonObj())
         return json.dumps(jsonObj, indent=4)
+
+    def saveToFile(self):
+        nodeJson = self.getJson()
+        with open("Node-" + str(self.id) + '.json', 'w', encoding='utf-8') as f:
+            f.write(nodeJson)
 
     def __updateNewMinedBlock(self, newBlock: Block, newBlockTreeNode: BlockTreeNode) -> None:
         # update local ledger and broadcast new Block

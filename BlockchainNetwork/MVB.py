@@ -1,12 +1,8 @@
-from nacl.signing import *
-import logging
-from nacl.encoding import *
-from hashlib import sha256
-
 from Blockchain.Transaction import *
-from Blockchain.Block import *
 from Blockchain.Node import *
+from time import sleep
 
+coloredlogs.install()
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 log = logging.getLogger(__name__)
 
@@ -14,10 +10,12 @@ log = logging.getLogger(__name__)
 class MVB:
     def __init__(self):
         log.info("Start initialling the MVB")
+        sleep(2)
         self.txWaitingPool: List[Transaction] = []
         self.networkNodes: List[Node] = []
         self.genesisBlock = None
         log.info("Initial success")
+        sleep(2)
 
     def initialNodes(self, cnt: int):
         for blockId in range(1, cnt + 1):
@@ -26,6 +24,7 @@ class MVB:
         for node in self.networkNodes:
             node.allNodeList += self.networkNodes
         log.info(str(cnt) + " network nodes have been set up successfully")
+        sleep(2)
 
     def generateGenesisBlock(self, pubKeysByteList: List[TxOutput]) -> None:
         """
@@ -37,6 +36,7 @@ class MVB:
         genesisPow = 0
         self.genesisBlock = Block(genesisTx, genesisPrev, genesisNonce, genesisPow)
         log.info("Genesis block have been generated successfully")
+        sleep(2)
 
     def broadcastTxPools(self):
         for node in self.networkNodes:

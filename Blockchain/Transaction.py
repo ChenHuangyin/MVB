@@ -2,7 +2,6 @@ from typing import List
 import json
 from nacl.encoding import HexEncoder
 from nacl.signing import SigningKey
-from nacl.signing import VerifyKey
 from hashlib import sha256
 
 
@@ -44,7 +43,7 @@ class Transaction:
 
         inputList = []
         for txInput in self.txInputs:
-            txInputDict = {"number": self.txNumber, "output": {"value": txInput.output.value, "pubkey": str(txInput.output.pubKey)}}
+            txInputDict = {"number": txInput.number, "output": {"value": txInput.output.value, "pubkey": str(txInput.output.pubKey)}}
             inputList.append(txInputDict)
         jsonObj["input"] = inputList
 
