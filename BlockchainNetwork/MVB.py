@@ -14,7 +14,7 @@ log = logging.getLogger(__name__)
 class MVB:
     def __init__(self):
         log.info("Start initialling the MVB")
-        self.globalTxPool: List[Transaction] = []
+        self.txWaitingPool: List[Transaction] = []
         self.networkNodes: List[Node] = []
         self.genesisBlock = None
         log.info("Initial success")
@@ -23,6 +23,8 @@ class MVB:
         for blockId in range(1, cnt + 1):
             newNode = Node(self.genesisBlock, str(blockId))
             self.networkNodes.append(newNode)
+        for node in self.networkNodes:
+            node.allNodeList += self.networkNodes
         log.info(str(cnt) + " network nodes have been set up successfully")
 
     def generateGenesisBlock(self, pubKeysByteList: List[TxOutput]) -> None:
@@ -36,13 +38,18 @@ class MVB:
         self.genesisBlock = Block(genesisTx, genesisPrev, genesisNonce, genesisPow)
         log.info("Genesis block have been generated successfully")
 
+    def broadcastTxPools(self):
+        for node in self.networkNodes:
+            node.globalTxPool += self.txWaitingPool
+        self.txWaitingPool = []
+
     def __generateGenesisTx(self, pubKeysByteList: List[TxOutput]) -> Transaction:
         """
             Generate the genesis Transaction
         """
         genesisTxOutputList = self.__generateGenesisTxOutputList(pubKeysByteList)
         genesisSigningKey = SigningKey.generate()
-        genesisTx = Transaction(0, [], genesisTxOutputList, genesisSigningKey.sign('arbitrary msg'.encode("utf-8")))
+        genesisTx = Transaction(1, [], genesisTxOutputList, genesisSigningKey.sign('arbitrary msg'.encode("utf-8")))
         return genesisTx
 
     def __generateGenesisTxOutputList(self, pubKeysByteList: List[TxOutput]) -> List[TxOutput]:

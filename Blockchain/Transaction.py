@@ -1,6 +1,8 @@
 from typing import List
 import json
-from nacl.signing import SignedMessage
+from nacl.encoding import HexEncoder
+from nacl.signing import SigningKey
+from nacl.signing import VerifyKey
 from hashlib import sha256
 
 
@@ -23,7 +25,7 @@ class TxInput:
         self.output = output
 
     def toString(self) -> str:
-        itemList = [str(self.number), str(self.output.value), self.output.pubKey]
+        itemList = [str(self.number), str(self.output.value), str(self.output.pubKey)]
         return ''.join(itemList)
 
     def isEqual(self, txInput) -> bool:
@@ -31,7 +33,7 @@ class TxInput:
 
 
 class Transaction:
-    def __init__(self, txNumber: int, txInputs: List[TxInput], txOutputs: List[TxOutput], sig: SignedMessage):
+    def __init__(self, txNumber: int, txInputs: List[TxInput], txOutputs: List[TxOutput], sig):
         self.txNumber = txNumber
         self.txInputs = txInputs
         self.txOutputs = txOutputs
@@ -63,7 +65,8 @@ class Transaction:
         for txOutput in self.txOutputs:
             itemList.append(txOutput.toString())
         itemList.append(str(self.sig.signature.hex()))
-        return sha256(''.join(itemList).encode('utf-8')).hexdigest()
+        self.txNumber = sha256(''.join(itemList).encode('utf-8')).hexdigest()
+        return self.txNumber
 
     def getMessage(self):
         itemList = []
@@ -72,6 +75,13 @@ class Transaction:
         for txOutput in self.txOutputs:
             itemList.append(txOutput.toString())
         return (''.join(itemList)).encode('utf-8')
+
+    def sign(self, signingKey: SigningKey):
+        msg = self.getMessage()
+        self.sig = signingKey.sign(msg, encoder=HexEncoder)
+
+        verifyKey = signingKey.verify_key
+        verifyKey.verify(self.sig, encoder=HexEncoder)
 
     def toString(self) -> str:
         itemList = [str(self.txNumber)]
