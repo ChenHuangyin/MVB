@@ -1,8 +1,0 @@
-Package    Version
----------- -------
-cffi       1.14.2
-pip        20.2.2
-pycparser  2.20
-PyNaCl     1.4.0
-setuptools 50.1.0
-six        1.15.0

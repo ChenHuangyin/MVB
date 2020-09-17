@@ -1,24 +1,30 @@
+import logging
+
 from nacl.signing import VerifyKey
 from nacl.encoding import HexEncoder
 from nacl.exceptions import BadSignatureError
 
 
 from Blockchain.Block import *
-from Blockchain.Transaction import *
+from Blockchain.Transaction import Transaction
 from queue import Queue
 from hashlib import sha256
+from typing import List
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+log = logging.getLogger(__name__)
 
 
 class Node:
     def __init__(self, genesisBlock: Block, nodeID: str) -> None:
         # initial the first block into genesisBlock
-        self.latestBlockTreeNode = BlockTreeNode(None, genesisBlock, 1)
-        self.ledger = [self.latestBlockTreeNode]  # blocks array, type: List[BlockTreeNode]
-        self.id = nodeID
-        self.allNodeList = []  # all the Nodes in the blockchain network
+        self.latestBlockTreeNode: BlockTreeNode = BlockTreeNode(None, genesisBlock, 1)
+        self.ledger: List[BlockTreeNode] = [self.latestBlockTreeNode]  # blocks array, type: List[BlockTreeNode]
+        self.id: str = nodeID
+        self.allNodeList: List[Node] = []  # all the Nodes in the blockchain network
         self.receivedBlockQueue = Queue()  # storage the received Block from other Node
         self.miningDifficulty = 0x07FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
-        self.globalTxPool = []
+        self.globalTxPool: List[Transaction] = []
 
     def broadcastNewBlock(self, newBlock: Block) -> None:  # broadcast the new mined block to the whole network
         for networkNode in self.allNodeList:
@@ -75,6 +81,12 @@ class Node:
         """
         return self.__verifyBlockPow(newBlock) and self.verifyTx(newBlock.tx)
 
+    def getJson(self):
+        jsonObj = {"Blocks": []}
+        for treeNode in self.ledger:
+            jsonObj["Blocks"].append(treeNode.nowBlock.getJsonObj())
+        return json.dumps(jsonObj, indent=4)
+
     def __updateNewMinedBlock(self, newBlock: Block, newBlockTreeNode: BlockTreeNode) -> None:
         # update local ledger and broadcast new Block
         self.ledger.append(newBlockTreeNode)
@@ -96,7 +108,7 @@ class Node:
         for networkNode in self.allNodeList:
             networkNode.globalTxPool.append(tx)
 
-    def __getIntersection(self, treeNode1: BlockTreeNode, treeNode2: BlockTreeNode) -> BlockTreeNode:
+    def __getIntersection(self, treeNode1: BlockTreeNode, treeNode2: BlockTreeNode):
         p1, p2 = treeNode1, treeNode2
         if not p1 or not p2:
             return None
@@ -115,9 +127,11 @@ class Node:
         #  Ensure the transaction is not already on the blockchain (included in an existing valid block)
         pBlock = self.latestBlockTreeNode
         while pBlock:
-            if tx.txNumber == pBlock.nowBlock.tx.number:
+            if tx.txNumber == pBlock.nowBlock.tx.txNumber:
+                log.error("Duplicated Tx Error on the network")
                 return False
             pBlock = pBlock.prevBlock
+        log.info("Duplicated Tx Test PASSED")
         return True
 
     def __verifyTxStructure(self, tx: Transaction) -> bool:
@@ -151,7 +165,7 @@ class Node:
             outputCorrect = False
             pBlock = self.latestBlockTreeNode
             while pBlock:
-                if txInput.number == pBlock.nowBlock.tx.number:  # find that old transaction in the ledger
+                if txInput.number == pBlock.nowBlock.tx.txNumber:  # find that old transaction in the ledger
                     numberExist = True
                     for pBlockTxOutput in pBlock.nowBlock.tx.txOutputs:
                         if txInput.output.isEqual(pBlockTxOutput):  # verify the output content
@@ -164,7 +178,7 @@ class Node:
         return validInputCounter == len(tx.txInputs)
 
     def __verifyTxPubKeyAndSig(self, tx: Transaction) -> bool:
-        #  each output in the input has the same public key, and that key can verify the signature on this transaction
+        #  each output in the input has the same public key, and that key can be used to verify the signature of the transaction
         if not tx.txInputs:
             return False
         senderPubKey = tx.txInputs[0].output.pubKey
@@ -201,6 +215,10 @@ class Node:
         return inputSum == outputSum
 
     def __verifyBlockPow(self, newBlock: Block) -> bool:
+        blockMsg = newBlock.tx.toString() + newBlock.prev + str(newBlock.nonce)
+        blockPow = sha256(blockMsg.encode('utf-8')).hexdigest()
+        if newBlock.pow != str(blockPow):
+            return False
         return newBlock.pow <= 0x07FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
 
     def __verifyBlockPrevHash(self, prevBlock: Block, newBlock: Block) -> bool:

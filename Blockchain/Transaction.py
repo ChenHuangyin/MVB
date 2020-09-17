@@ -10,7 +10,7 @@ class TxOutput:
         self.pubKey = pubKey
 
     def toString(self) -> str:
-        itemList = [str(self.value), self.pubKey]
+        itemList = [str(self.value), str(self.pubKey)]
         return ''.join(itemList)
 
     def isEqual(self, txOutput) -> bool:
@@ -37,7 +37,7 @@ class Transaction:
         self.txOutputs = txOutputs
         self.sig = sig
 
-    def getJson(self) -> json:
+    def getJsonObj(self) -> json:
         jsonObj = {"number": self.txNumber}
 
         inputList = []
@@ -52,9 +52,9 @@ class Transaction:
             outputList.append(txOutputDict)
         jsonObj["output"] = outputList
 
-        jsonObj["sig"] = self.sig.signature
+        jsonObj["sig"] = str(self.sig.signature.hex())
 
-        return json.dumps(jsonObj)
+        return jsonObj
 
     def getNumber(self):
         itemList = []
@@ -62,7 +62,7 @@ class Transaction:
             itemList.append(txInput.toString())
         for txOutput in self.txOutputs:
             itemList.append(txOutput.toString())
-        itemList.append(self.sig.signature)
+        itemList.append(str(self.sig.signature.hex()))
         return sha256(''.join(itemList).encode('utf-8')).hexdigest()
 
     def getMessage(self):
@@ -79,6 +79,5 @@ class Transaction:
             itemList.append(txInput.toString())
         for txOutput in self.txOutputs:
             itemList.append(txOutput.toString())
-        itemList.append(self.sig.signature)
+        itemList.append(str(self.sig.signature.hex()))
         return ''.join(itemList)
-
