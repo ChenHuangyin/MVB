@@ -142,6 +142,8 @@ class Node:
         pBlock = self.latestBlockTreeNode
         while pBlock:
             if tx.txNumber == pBlock.nowBlock.tx.txNumber:
+                print(tx.txNumber)
+                print(pBlock.nowBlock.tx.txNumber)
                 log.error("Verification Failed! Tx is already on the blockchain")
                 return False
             pBlock = pBlock.prevBlockTreeNode

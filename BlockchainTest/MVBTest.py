@@ -49,7 +49,44 @@ class MVBTest:
             nodeThread.start()
 
     def inputOutputSumTest(self):
-        pass
+        log.info("--------------------Input output sum test now started-------------------")
+        ledger = self.mvb.networkNodes[0].ledger
+        print(len(ledger))
+
+        # sender is 0
+        newTx3InputNumber = ledger[1].nowBlock.tx.txNumber
+        newTx3InputOutput = ledger[1].nowBlock.tx.txOutputs[0]
+        Tx3Inputs = [TxInput(newTx3InputNumber, newTx3InputOutput)]
+        Tx3Outputs = [TxOutput(250, self.pubKeysByteList[0]),
+                      TxOutput(250, self.pubKeysByteList[14])]
+
+        Tx3 = Transaction(0, Tx3Inputs, Tx3Outputs, None)
+        Tx3.sign(self.signingKeysList[0])
+        Tx3.getNumber()
+        print(Tx3.txNumber)
+
+        # sender is 1
+        newTx4InputNumber1 = ledger[0].nowBlock.tx.txNumber
+        newTx4InputNumber2 = ledger[1].nowBlock.tx.txNumber
+        # 1000 from genesis tx
+        newTx4InputOutput1 = ledger[0].nowBlock.tx.txOutputs[1]
+        # 500 from tx1
+        newTx4InputOutput2 = ledger[1].nowBlock.tx.txOutputs[1]
+        # input sum is 1500, output sum is 1400, invalid tx
+        Tx4Inputs = [TxInput(newTx4InputNumber1, newTx4InputOutput1),
+                     TxInput(newTx4InputNumber2, newTx4InputOutput2)]
+        Tx4Outputs = [TxOutput(800, self.pubKeysByteList[4]),
+                      TxOutput(600, self.pubKeysByteList[14])]
+
+        Tx4 = Transaction(0, Tx4Inputs, Tx4Outputs, None)
+        Tx4.sign(self.signingKeysList[1])
+        Tx4.getNumber()
+
+        self.mvb.txWaitingPool += [Tx3, Tx4]
+        self.mvb.broadcastTxPools()
+        for i, node in enumerate(self.mvb.networkNodes):
+            nodeThread = Thread(target=self.threadMining, args=(node, 1))
+            nodeThread.start()
 
     def badStructureTest(self):
         pass
@@ -71,6 +108,7 @@ class MVBTest:
         #         break
         for tx in node.globalTxPool:
             node.mineBlock(tx)
+        node.globalTxPool = []
         node.saveToFile()
 
     def __initialSigningKeys(self, cnt: int) -> None:
@@ -80,7 +118,7 @@ class MVBTest:
         for _ in range(cnt):
             self.signingKeysList.append(SigningKey.generate())
         log.info(str(cnt) + " signing keys have been generated successfully")
-        sleep(2)
+        # sleep(2)
 
     def __initialPubKeys(self):
         for signingKey in self.signingKeysList:
@@ -89,4 +127,4 @@ class MVBTest:
             self.pubKeysList.append(verifyKey)
             self.pubKeysByteList.append(verifyKeyByte)
         log.info(str(len(self.pubKeysList)) + " public keys have been generated successfully")
-        sleep(2)
+        # sleep(2)
