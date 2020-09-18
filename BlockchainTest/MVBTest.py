@@ -51,9 +51,8 @@ class MVBTest:
     def inputOutputSumTest(self):
         log.info("--------------------Input output sum test now started-------------------")
         ledger = self.mvb.networkNodes[0].ledger
-        print(len(ledger))
 
-        # sender is 0
+        # sender is 1
         newTx3InputNumber = ledger[1].nowBlock.tx.txNumber
         newTx3InputOutput = ledger[1].nowBlock.tx.txOutputs[0]
         Tx3Inputs = [TxInput(newTx3InputNumber, newTx3InputOutput)]
@@ -63,9 +62,8 @@ class MVBTest:
         Tx3 = Transaction(0, Tx3Inputs, Tx3Outputs, None)
         Tx3.sign(self.signingKeysList[0])
         Tx3.getNumber()
-        print(Tx3.txNumber)
 
-        # sender is 1
+        # sender is 2
         newTx4InputNumber1 = ledger[0].nowBlock.tx.txNumber
         newTx4InputNumber2 = ledger[1].nowBlock.tx.txNumber
         # 1000 from genesis tx
@@ -95,7 +93,37 @@ class MVBTest:
         pass
 
     def sigVerifyTest(self):
-        pass
+        log.info("--------------------Signature verify test now started-------------------")
+        ledger = self.mvb.networkNodes[0].ledger
+
+        # sender is 6
+        newTx5InputNumber = ledger[0].nowBlock.tx.txNumber
+        newTx5InputOutput = ledger[0].nowBlock.tx.txOutputs[5]
+        Tx5Inputs = [TxInput(newTx5InputNumber, newTx5InputOutput)]
+        Tx5Outputs = [TxOutput(250, self.pubKeysByteList[5]),
+                      TxOutput(750, self.pubKeysByteList[14])]
+
+        Tx5 = Transaction(0, Tx5Inputs, Tx5Outputs, None)
+        Tx5.sign(self.signingKeysList[5])
+        Tx5.getNumber()
+
+        # sender is 8
+        newTx6InputNumber = ledger[0].nowBlock.tx.txNumber
+        newTx6InputOutput = ledger[0].nowBlock.tx.txOutputs[7]
+        Tx6Inputs = [TxInput(newTx6InputNumber, newTx6InputOutput)]
+        Tx6Outputs = [TxOutput(400, self.pubKeysByteList[7]),
+                      TxOutput(600, self.pubKeysByteList[14])]
+
+        Tx6 = Transaction(0, Tx6Inputs, Tx6Outputs, None)
+        # invalid signature
+        Tx6.sign(self.signingKeysList[6])
+        Tx6.getNumber()
+
+        self.mvb.txWaitingPool += [Tx5, Tx6]
+        self.mvb.broadcastTxPools()
+        for i, node in enumerate(self.mvb.networkNodes):
+            nodeThread = Thread(target=self.threadMining, args=(node, 1))
+            nodeThread.start()
 
     def threadMining(self, node: Node, i):
         # nowTime = time.time()
