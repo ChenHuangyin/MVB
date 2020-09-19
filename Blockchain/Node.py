@@ -175,8 +175,8 @@ class Node:
         #  Ensure number hash is correct
         numberHash = tx.txNumber
         nowHash = tx.getNumber()
-        print(numberHash)
-        print(nowHash)
+        # print(numberHash)
+        # print(nowHash)
         __flag = tx.txNumber and nowHash == numberHash
         if not __flag:
             log.error("Verification Failed! Number hash is not correct")

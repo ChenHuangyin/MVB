@@ -152,11 +152,8 @@ class MVBTest:
         with open(FILENAME, 'r', encoding='utf-8') as f:
             txListJsonObj = json.load(f)
         for txObj in txListJsonObj['txList']:
-            # print(txObj)
             newTx = Transaction(jsonObj=txObj)
             txList.append(newTx)
-            print(newTx.getJsonObj())
-
         return txList
 
     def __initialSigningKeys(self, cnt: int) -> None:

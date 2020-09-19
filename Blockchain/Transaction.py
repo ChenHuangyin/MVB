@@ -99,6 +99,7 @@ class Transaction:
 
     def sign(self, signingKey: SigningKey):
         msg = self.getMessage()
+        # print(type(signingKey.sign(msg, encoder=HexEncoder).signature))
         self.sig = str(signingKey.sign(msg, encoder=HexEncoder).signature.hex())
         # verifyKey = signingKey.verify_key
         # verifyKey.verify(self.sig, encoder=HexEncoder)
