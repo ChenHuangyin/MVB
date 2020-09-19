@@ -1,7 +1,5 @@
 from BlockchainNetwork.MVB import *
 from threading import Thread
-import random
-import time
 
 coloredlogs.install()
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -41,8 +39,11 @@ class MVBTest:
         Tx2 = Transaction(0, Tx2Inputs, Tx2Outputs, None)
         Tx2.sign(self.signingKeysList[0])
         Tx2.getNumber()
-
         self.mvb.txWaitingPool += [Tx1, Tx2]
+
+        #self.createTxJsonFile("DoubleSpendTestTx.json", [Tx1, Tx2])
+        #self.mvb.txWaitingPool += self.readTxFromFile('DoubleSpendTestTx.json')
+
         self.mvb.broadcastTxPools()
         for i, node in enumerate(self.mvb.networkNodes):
             nodeThread = Thread(target=self.threadMining, args=(node, 1))
@@ -138,6 +139,25 @@ class MVBTest:
             node.mineBlock(tx)
         node.globalTxPool = []
         node.saveToFile()
+
+    def createTxJsonFile(self, FILENAME: str, txList: List[Transaction]):
+        txListJsonObj = {'txList': []}
+        for tx in txList:
+            txListJsonObj['txList'].append(tx.getJsonObj())
+        with open(FILENAME, 'w', encoding='utf-8') as f:
+            f.write(json.dumps(txListJsonObj, indent=4))
+
+    def readTxFromFile(self, FILENAME: str) -> List[Transaction]:
+        txList = []
+        with open(FILENAME, 'r', encoding='utf-8') as f:
+            txListJsonObj = json.load(f)
+        for txObj in txListJsonObj['txList']:
+            # print(txObj)
+            newTx = Transaction(jsonObj=txObj)
+            txList.append(newTx)
+            print(newTx.getJsonObj())
+
+        return txList
 
     def __initialSigningKeys(self, cnt: int) -> None:
         """

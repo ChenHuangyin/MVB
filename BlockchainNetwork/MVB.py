@@ -49,7 +49,7 @@ class MVB:
         """
         genesisTxOutputList = self.__generateGenesisTxOutputList(pubKeysByteList)
         genesisSigningKey = SigningKey.generate()
-        genesisTx = Transaction(1, [], genesisTxOutputList, genesisSigningKey.sign('arbitrary msg'.encode("utf-8")))
+        genesisTx = Transaction(1, [], genesisTxOutputList, str(genesisSigningKey.sign('arbitrary msg'.encode("utf-8")).hex()))
         return genesisTx
 
     def __generateGenesisTxOutputList(self, pubKeysByteList: List[TxOutput]) -> List[TxOutput]:

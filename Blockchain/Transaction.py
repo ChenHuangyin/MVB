@@ -6,7 +6,10 @@ from hashlib import sha256
 
 
 class TxOutput:
-    def __init__(self, value: int, pubKey):
+    def __init__(self, value: int = None, pubKey=None, jsonObj=None):
+        if jsonObj:
+            self.__createWithJsonObj(jsonObj)
+            return
         self.value = value
         self.pubKey = pubKey
 
@@ -17,9 +20,16 @@ class TxOutput:
     def isEqual(self, txOutput) -> bool:
         return txOutput.value == self.value and txOutput.pubKey == self.pubKey
 
+    def __createWithJsonObj(self, txOutputJsonObj):
+        self.value = int(txOutputJsonObj['value'])
+        self.pubKey = txOutputJsonObj['pubkey']
+
 
 class TxInput:
-    def __init__(self, number: int, output: TxOutput):
+    def __init__(self, number=None, output: TxOutput = None, jsonObj=None):
+        if jsonObj:
+            self.__createWithJsonObj(jsonObj)
+            return
         self.number = number
         self.output = output
 
@@ -30,20 +40,28 @@ class TxInput:
     def isEqual(self, txInput) -> bool:
         return self.number == txInput.number and self.output.isEqual(txInput.output)
 
+    def __createWithJsonObj(self, txInputJsonObj):
+        self.number = txInputJsonObj['number']
+        self.output = TxOutput(txInputJsonObj['output'])
+
 
 class Transaction:
-    def __init__(self, txNumber: int, txInputs: List[TxInput], txOutputs: List[TxOutput], sig):
+    def __init__(self, txNumber: int = None, txInputs: List[TxInput] = None, txOutputs: List[TxOutput] = None, sig=None,
+                 jsonObj: dict = None):
+        if jsonObj:
+            self.__createWithJsonObj(jsonObj)
+            return
         self.txNumber = txNumber
         self.txInputs = txInputs
         self.txOutputs = txOutputs
         self.sig = sig
 
-    def getJsonObj(self) -> json:
+    def getJsonObj(self) -> dict:
         jsonObj = {"number": self.txNumber}
-
         inputList = []
         for txInput in self.txInputs:
-            txInputDict = {"number": txInput.number, "output": {"value": txInput.output.value, "pubkey": str(txInput.output.pubKey)}}
+            txInputDict = {"number": txInput.number,
+                           "output": {"value": txInput.output.value, "pubkey": str(txInput.output.pubKey)}}
             inputList.append(txInputDict)
         jsonObj["input"] = inputList
 
@@ -51,11 +69,15 @@ class Transaction:
         for txOutput in self.txOutputs:
             txOutputDict = {"value": txOutput.value, "pubkey": str(txOutput.pubKey)}
             outputList.append(txOutputDict)
-        jsonObj["output"] = outputList
 
-        jsonObj["sig"] = str(self.sig.signature.hex())
+        jsonObj["output"] = outputList
+        jsonObj["sig"] = self.sig
 
         return jsonObj
+
+    def getJson(self) -> str:
+        jsonObj = self.getJsonObj()
+        return json.dumps(jsonObj, indent=4)
 
     def getNumber(self):
         itemList = []
@@ -63,7 +85,7 @@ class Transaction:
             itemList.append(txInput.toString())
         for txOutput in self.txOutputs:
             itemList.append(txOutput.toString())
-        itemList.append(str(self.sig.signature.hex()))
+        itemList.append(self.sig)
         self.txNumber = sha256(''.join(itemList).encode('utf-8')).hexdigest()
         return self.txNumber
 
@@ -77,10 +99,9 @@ class Transaction:
 
     def sign(self, signingKey: SigningKey):
         msg = self.getMessage()
-        self.sig = signingKey.sign(msg, encoder=HexEncoder)
-
-        verifyKey = signingKey.verify_key
-        verifyKey.verify(self.sig, encoder=HexEncoder)
+        self.sig = str(signingKey.sign(msg, encoder=HexEncoder).signature.hex())
+        # verifyKey = signingKey.verify_key
+        # verifyKey.verify(self.sig, encoder=HexEncoder)
 
     def toString(self) -> str:
         itemList = [str(self.txNumber)]
@@ -88,5 +109,18 @@ class Transaction:
             itemList.append(txInput.toString())
         for txOutput in self.txOutputs:
             itemList.append(txOutput.toString())
-        itemList.append(str(self.sig.signature.hex()))
+        itemList.append(self.sig)
         return ''.join(itemList)
+
+    def __createWithJsonObj(self, txJsonObj: dict):
+        self.txNumber = txJsonObj['number']
+        self.txInputs = []
+        self.txOutputs = []
+        self.sig = txJsonObj['sig']
+        for inputJsonObj in txJsonObj['input']:
+            self.txInputs.append(TxInput(jsonObj=inputJsonObj))
+
+        for outputJsonObj in txJsonObj['output']:
+            self.txOutputs.append(TxOutput(jsonObj=outputJsonObj))
+
+

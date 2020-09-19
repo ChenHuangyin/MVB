@@ -18,7 +18,8 @@ log = logging.getLogger(__name__)
 
 
 class Node:
-    def __init__(self, genesisBlock: Block, nodeID: str) -> None:
+    def __init__(self, genesisBlock: Block = None, nodeID: str = None) -> None:
+
         # initial the first block into genesisBlock
         self.latestBlockTreeNode: BlockTreeNode = BlockTreeNode(None, genesisBlock, 1)
         self.ledger: List[BlockTreeNode] = [self.latestBlockTreeNode]  # blocks array, type: List[BlockTreeNode]
@@ -95,7 +96,16 @@ class Node:
             jsonObj["Blocks"].append(treeNode.nowBlock.getJsonObj())
         return json.dumps(jsonObj, indent=4)
 
+    # def readFromFile(self, FILENAME: str):
+    #     with open(FILENAME, 'r', encoding='utf-8') as f:
+    #         jsonObj = json.load(f)
+    #
+    #     for blockJsonObj in jsonObj['Blocks']:
+    #         blockObj = Block(jsonObj=blockJsonObj)
+    #         print(blockObj.tx.sig)
+
     def saveToFile(self):
+
         nodeJson = self.getJson()
         with open("Node-" + str(self.id) + '.json', 'w', encoding='utf-8') as f:
             f.write(nodeJson)
@@ -142,8 +152,6 @@ class Node:
         pBlock = self.latestBlockTreeNode
         while pBlock:
             if tx.txNumber == pBlock.nowBlock.tx.txNumber:
-                print(tx.txNumber)
-                print(pBlock.nowBlock.tx.txNumber)
                 log.error("Verification Failed! Tx is already on the blockchain")
                 return False
             pBlock = pBlock.prevBlockTreeNode
@@ -167,8 +175,8 @@ class Node:
         #  Ensure number hash is correct
         numberHash = tx.txNumber
         nowHash = tx.getNumber()
-        # print(numberHash)
-        # print(nowHash)
+        print(numberHash)
+        print(nowHash)
         __flag = tx.txNumber and nowHash == numberHash
         if not __flag:
             log.error("Verification Failed! Number hash is not correct")
