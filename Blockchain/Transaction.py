@@ -22,7 +22,7 @@ class TxOutput:
 
     def __createWithJsonObj(self, txOutputJsonObj):
         self.value = int(txOutputJsonObj['value'])
-        self.pubKey = txOutputJsonObj['pubkey']
+        self.pubKey = txOutputJsonObj['pubkey'].encode('utf-8')
 
 
 class TxInput:
@@ -31,7 +31,7 @@ class TxInput:
             self.__createWithJsonObj(jsonObj)
             return
         self.number = number
-        self.output = output
+        self.output: TxOutput = output
 
     def toString(self) -> str:
         itemList = [str(self.number), str(self.output.value), str(self.output.pubKey)]
@@ -42,7 +42,7 @@ class TxInput:
 
     def __createWithJsonObj(self, txInputJsonObj):
         self.number = txInputJsonObj['number']
-        self.output = TxOutput(txInputJsonObj['output'])
+        self.output = TxOutput(jsonObj=txInputJsonObj['output'])
 
 
 class Transaction:
@@ -61,13 +61,13 @@ class Transaction:
         inputList = []
         for txInput in self.txInputs:
             txInputDict = {"number": txInput.number,
-                           "output": {"value": txInput.output.value, "pubkey": str(txInput.output.pubKey)}}
+                           "output": {"value": txInput.output.value, "pubkey": txInput.output.pubKey.decode('utf-8')}}
             inputList.append(txInputDict)
         jsonObj["input"] = inputList
 
         outputList = []
         for txOutput in self.txOutputs:
-            txOutputDict = {"value": txOutput.value, "pubkey": str(txOutput.pubKey)}
+            txOutputDict = {"value": txOutput.value, "pubkey": txOutput.pubKey.decode('utf-8')}
             outputList.append(txOutputDict)
 
         jsonObj["output"] = outputList
@@ -99,7 +99,7 @@ class Transaction:
 
     def sign(self, signingKey: SigningKey):
         msg = self.getMessage()
-        # print(type(signingKey.sign(msg, encoder=HexEncoder).signature))
+        # print(type(signingKey.sign(msg, encoder=HexEncoder)))
         self.sig = str(signingKey.sign(msg, encoder=HexEncoder).signature.hex())
         # verifyKey = signingKey.verify_key
         # verifyKey.verify(self.sig, encoder=HexEncoder)
@@ -118,10 +118,13 @@ class Transaction:
         self.txInputs = []
         self.txOutputs = []
         self.sig = txJsonObj['sig']
+
         for inputJsonObj in txJsonObj['input']:
             self.txInputs.append(TxInput(jsonObj=inputJsonObj))
 
         for outputJsonObj in txJsonObj['output']:
             self.txOutputs.append(TxOutput(jsonObj=outputJsonObj))
+
+
 
 

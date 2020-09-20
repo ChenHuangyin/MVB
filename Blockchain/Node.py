@@ -11,7 +11,6 @@ from queue import Queue
 from hashlib import sha256
 from typing import List
 
-
 coloredlogs.install()
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 log = logging.getLogger(__name__)
@@ -168,13 +167,14 @@ class Node:
                     - that public key is the most recent recipient of that output (i.e. not a double-spend)
                 iii. the sum of the input and output values are equal
         """
-        return self.__verifyTxNumberHash(tx) and self.__verifyTxInputsNumber(tx) and self.__verifyTxPubKeyAndSig(tx) and \
-               self.__verifyTxDoubleSpend(tx) and self.__verifyTxInOutSum(tx)
+        return self.__verifyTxNumberHash(tx) and self.__verifyTxInputsNumber(tx) and self.__verifyTxPubKeyAndSig(tx) \
+               and self.__verifyTxDoubleSpend(tx) and self.__verifyTxInOutSum(tx)
 
     def __verifyTxNumberHash(self, tx: Transaction) -> bool:
         #  Ensure number hash is correct
         numberHash = tx.txNumber
         nowHash = tx.getNumber()
+        # print(numberHash)
         # print(numberHash)
         # print(nowHash)
         __flag = tx.txNumber and nowHash == numberHash
@@ -190,9 +190,12 @@ class Node:
             numberExist = False
             outputCorrect = False
             pBlock = self.latestBlockTreeNode
+            # print(pBlock.nowBlock.getJsonObj())
+            # print(" ")
+            # print(tx.getJsonObj())
+            # print(" ")
             while pBlock:
                 if txInput.number == pBlock.nowBlock.tx.txNumber:  # find that old transaction in the ledger
-
                     numberExist = True
                     for pBlockTxOutput in pBlock.nowBlock.tx.txOutputs:
                         if txInput.output.isEqual(pBlockTxOutput):  # verify the output content
@@ -202,7 +205,6 @@ class Node:
                 pBlock = pBlock.prevBlockTreeNode
             if numberExist and outputCorrect:
                 validInputCounter += 1
-
         __flag = validInputCounter == len(tx.txInputs)
         if not __flag:
             log.error("Verification Failed! Inputs are not correct")
@@ -212,7 +214,7 @@ class Node:
         #  each output in the input has the same public key, and that key can be used to verify the signature of the transaction
         if not tx.txInputs:
             return False
-        senderPubKey = tx.txInputs[0].output.pubKey
+        senderPubKey: bytes = tx.txInputs[0].output.pubKey
         for txInput in tx.txInputs:
             if txInput.output.pubKey != senderPubKey:
                 log.error("Verification Failed! Input pubKey is not unique")
@@ -220,7 +222,7 @@ class Node:
 
         verifyKey = VerifyKey(senderPubKey, HexEncoder)
         try:
-            verifyKey.verify(tx.sig, encoder=HexEncoder)
+            verifyKey.verify(tx.sig, tx.getMessage(), encoder=HexEncoder)
             return True
         except BadSignatureError:
             log.error("Verification Failed! Signature verification failed")

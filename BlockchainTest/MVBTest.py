@@ -39,10 +39,11 @@ class MVBTest:
         Tx2 = Transaction(0, Tx2Inputs, Tx2Outputs, None)
         Tx2.sign(self.signingKeysList[0])
         Tx2.getNumber()
-        self.mvb.txWaitingPool += [Tx1, Tx2]
+        # print(Tx1.getNumber())
+        # self.mvb.txWaitingPool += [Tx1, Tx2]
 
-        #self.createTxJsonFile("DoubleSpendTestTx.json", [Tx1, Tx2])
-        #self.mvb.txWaitingPool += self.readTxFromFile('DoubleSpendTestTx.json')
+        self.createTxJsonFile("DoubleSpendTestTx.json", [Tx1, Tx2])
+        self.mvb.txWaitingPool += self.readTxFromFile('DoubleSpendTestTx.json')
 
         self.mvb.broadcastTxPools()
         for i, node in enumerate(self.mvb.networkNodes):
