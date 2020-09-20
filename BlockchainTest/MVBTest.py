@@ -31,17 +31,15 @@ class MVBTest:
                       TxOutput(500, self.pubKeysByteList[1])]
         Tx1 = Transaction(0, Tx1Inputs, Tx1Outputs, None)
         Tx1.sign(self.signingKeysList[0])
-        Tx1.getNumber()
-
-
+        Tx1.calculateNumber()
 
         Tx2Inputs = [TxInput(1, self.mvb.genesisBlock.tx.txOutputs[0])]
         Tx2Outputs = [TxOutput(500, self.pubKeysByteList[2]),
                       TxOutput(500, self.pubKeysByteList[3])]
         Tx2 = Transaction(0, Tx2Inputs, Tx2Outputs, None)
         Tx2.sign(self.signingKeysList[0])
-        Tx2.getNumber()
-        # print(Tx1.getNumber())
+        Tx2.calculateNumber()
+        # print(Tx1.calculateNumber())
         # self.mvb.txWaitingPool += [Tx1, Tx2]
 
         self.createTxJsonFile("DoubleSpendTestTx.json", [Tx1, Tx2])
@@ -65,7 +63,7 @@ class MVBTest:
 
         Tx3 = Transaction(0, Tx3Inputs, Tx3Outputs, None)
         Tx3.sign(self.signingKeysList[0])
-        Tx3.getNumber()
+        Tx3.calculateNumber()
 
         # sender is 2
         newTx4InputNumber1 = ledger[0].nowBlock.tx.txNumber
@@ -82,19 +80,13 @@ class MVBTest:
 
         Tx4 = Transaction(0, Tx4Inputs, Tx4Outputs, None)
         Tx4.sign(self.signingKeysList[1])
-        Tx4.getNumber()
+        Tx4.calculateNumber()
 
         self.mvb.txWaitingPool += [Tx3, Tx4]
         self.mvb.broadcastTxPools()
         for i, node in enumerate(self.mvb.networkNodes):
             nodeThread = Thread(target=self.threadMining, args=(node, 1))
             nodeThread.start()
-
-    def badStructureTest(self):
-        pass
-
-    def broadcastBlockTest(self):
-        pass
 
     def sigVerifyTest(self):
         log.info("--------------------Signature verify test now started-------------------")
@@ -109,7 +101,7 @@ class MVBTest:
 
         Tx5 = Transaction(0, Tx5Inputs, Tx5Outputs, None)
         Tx5.sign(self.signingKeysList[5])
-        Tx5.getNumber()
+        Tx5.calculateNumber()
 
         # sender is 8
         newTx6InputNumber = ledger[0].nowBlock.tx.txNumber
@@ -121,13 +113,86 @@ class MVBTest:
         Tx6 = Transaction(0, Tx6Inputs, Tx6Outputs, None)
         # invalid signature
         Tx6.sign(self.signingKeysList[6])
-        Tx6.getNumber()
+        Tx6.calculateNumber()
 
         self.mvb.txWaitingPool += [Tx5, Tx6]
         self.mvb.broadcastTxPools()
         for i, node in enumerate(self.mvb.networkNodes):
             nodeThread = Thread(target=self.threadMining, args=(node, 1))
             nodeThread.start()
+
+    def badStructureTest(self):
+        pass
+
+    def numberHashTest(self):
+        log.info("--------------------Number hash test now started-------------------")
+        ledger = self.mvb.networkNodes[0].ledger
+
+        # sender is 6
+        newTx5InputNumber = ledger[0].nowBlock.tx.txNumber
+        newTx5InputOutput = ledger[0].nowBlock.tx.txOutputs[4]
+        Tx5Inputs = [TxInput(newTx5InputNumber, newTx5InputOutput)]
+        Tx5Outputs = [TxOutput(250, self.pubKeysByteList[4]),
+                      TxOutput(750, self.pubKeysByteList[5])]
+
+        Tx5 = Transaction(0, Tx5Inputs, Tx5Outputs, None)
+        Tx5.sign(self.signingKeysList[4])
+        Tx5.calculateNumber()
+
+        # sender is 8
+        newTx6InputNumber = ledger[0].nowBlock.tx.txNumber
+        newTx6InputOutput = ledger[0].nowBlock.tx.txOutputs[13]
+        Tx6Inputs = [TxInput(newTx6InputNumber, newTx6InputOutput)]
+        Tx6Outputs = [TxOutput(400, self.pubKeysByteList[13]),
+                      TxOutput(600, self.pubKeysByteList[14])]
+
+        Tx6 = Transaction(0, Tx6Inputs, Tx6Outputs, None)
+        Tx6.sign(self.signingKeysList[13])
+        # wrong transaction number
+        Tx6.txNumber = 1234
+
+        self.mvb.txWaitingPool += [Tx5, Tx6]
+        self.mvb.broadcastTxPools()
+        for i, node in enumerate(self.mvb.networkNodes):
+            nodeThread = Thread(target=self.threadMining, args=(node, 1))
+            nodeThread.start()
+
+    def txInputsExistTest(self):
+        log.info("--------------------Transaction inputs exist test now started-------------------")
+        ledger = self.mvb.networkNodes[0].ledger
+
+        # sender is 6
+        newTx5InputNumber = ledger[0].nowBlock.tx.txNumber
+        newTx5InputOutput = ledger[0].nowBlock.tx.txOutputs[11]
+        Tx5Inputs = [TxInput(newTx5InputNumber, newTx5InputOutput)]
+        Tx5Outputs = [TxOutput(250, self.pubKeysByteList[11]),
+                      TxOutput(750, self.pubKeysByteList[12])]
+
+        Tx5 = Transaction(0, Tx5Inputs, Tx5Outputs, None)
+        Tx5.sign(self.signingKeysList[11])
+        Tx5.calculateNumber()
+
+        # sender is 8
+        newTx6InputNumber = ledger[0].nowBlock.tx.txNumber
+        newTx6InputOutput = ledger[0].nowBlock.tx.txOutputs[7]
+        Tx6Inputs = [TxInput(newTx6InputNumber, newTx6InputOutput)]
+        Tx6Outputs = [TxOutput(400, self.pubKeysByteList[7]),
+                      TxOutput(600, self.pubKeysByteList[6])]
+
+        Tx6 = Transaction(0, Tx6Inputs, Tx6Outputs, None)
+        Tx6.sign(self.signingKeysList[7])
+        Tx6.calculateNumber()
+        # non-exist input
+        Tx6.txInputs[0].output.value = 333
+
+        self.mvb.txWaitingPool += [Tx5, Tx6]
+        self.mvb.broadcastTxPools()
+        for i, node in enumerate(self.mvb.networkNodes):
+            nodeThread = Thread(target=self.threadMining, args=(node, 1))
+            nodeThread.start()
+
+    def broadcastBlockTest(self):
+        pass
 
     def threadMining(self, node: Node, i):
         # nowTime = time.time()

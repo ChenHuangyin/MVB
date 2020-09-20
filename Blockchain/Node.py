@@ -3,7 +3,6 @@ import coloredlogs
 
 from nacl.signing import VerifyKey
 from nacl.encoding import HexEncoder
-from nacl.encoding import RawEncoder
 from nacl.exceptions import BadSignatureError
 
 from Blockchain.Block import *
@@ -159,13 +158,18 @@ class Node:
                     - that public key is the most recent recipient of that output (i.e. not a double-spend)
                 iii. the sum of the input and output values are equal
         """
-        return self.__verifyTxNumberHash(tx) and self.__verifyTxInputsNumber(tx) and self.__verifyTxPubKeyAndSig(tx) \
-               and self.__verifyTxDoubleSpend(tx) and self.__verifyTxInOutSum(tx)
+
+        flags = [self.__verifyTxNumberHash(tx), self.__verifyTxInputsNumber(tx), self.__verifyTxPubKeyAndSig(tx),
+                 self.__verifyTxDoubleSpend(tx), self.__verifyTxInOutSum(tx)]
+        __flag = True
+        for flag in flags:
+            __flag = __flag and flag
+        return __flag
 
     def __verifyTxNumberHash(self, tx: Transaction) -> bool:
         #  Ensure number hash is correct
         numberHash = tx.txNumber
-        nowHash = tx.getNumber()
+        nowHash = tx.calculateNumber()
         __flag = tx.txNumber and nowHash == numberHash
         if not __flag:
             log.error("Verification Failed! Number hash is not correct")

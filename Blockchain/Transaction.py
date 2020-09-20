@@ -31,7 +31,7 @@ class TxInput:
             self.__createWithJsonObj(jsonObj)
             return
         self.number = number
-        self.output: TxOutput = output
+        self.output: TxOutput = TxOutput(output.value, output.pubKey)
 
     def toString(self) -> str:
         itemList = [str(self.number), str(self.output.value), str(self.output.pubKey)]
@@ -79,7 +79,7 @@ class Transaction:
         jsonObj = self.getJsonObj()
         return json.dumps(jsonObj, indent=4)
 
-    def getNumber(self):
+    def calculateNumber(self):
         itemList = []
         for txInput in self.txInputs:
             itemList.append(txInput.toString())
