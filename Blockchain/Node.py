@@ -3,6 +3,7 @@ import coloredlogs
 
 from nacl.signing import VerifyKey
 from nacl.encoding import HexEncoder
+from nacl.encoding import RawEncoder
 from nacl.exceptions import BadSignatureError
 
 from Blockchain.Block import *
@@ -95,16 +96,7 @@ class Node:
             jsonObj["Blocks"].append(treeNode.nowBlock.getJsonObj())
         return json.dumps(jsonObj, indent=4)
 
-    # def readFromFile(self, FILENAME: str):
-    #     with open(FILENAME, 'r', encoding='utf-8') as f:
-    #         jsonObj = json.load(f)
-    #
-    #     for blockJsonObj in jsonObj['Blocks']:
-    #         blockObj = Block(jsonObj=blockJsonObj)
-    #         print(blockObj.tx.sig)
-
     def saveToFile(self):
-
         nodeJson = self.getJson()
         with open("Node-" + str(self.id) + '.json', 'w', encoding='utf-8') as f:
             f.write(nodeJson)
@@ -174,9 +166,6 @@ class Node:
         #  Ensure number hash is correct
         numberHash = tx.txNumber
         nowHash = tx.getNumber()
-        # print(numberHash)
-        # print(numberHash)
-        # print(nowHash)
         __flag = tx.txNumber and nowHash == numberHash
         if not __flag:
             log.error("Verification Failed! Number hash is not correct")
@@ -190,10 +179,6 @@ class Node:
             numberExist = False
             outputCorrect = False
             pBlock = self.latestBlockTreeNode
-            # print(pBlock.nowBlock.getJsonObj())
-            # print(" ")
-            # print(tx.getJsonObj())
-            # print(" ")
             while pBlock:
                 if txInput.number == pBlock.nowBlock.tx.txNumber:  # find that old transaction in the ledger
                     numberExist = True
@@ -222,7 +207,7 @@ class Node:
 
         verifyKey = VerifyKey(senderPubKey, HexEncoder)
         try:
-            verifyKey.verify(tx.sig, tx.getMessage(), encoder=HexEncoder)
+            verifyKey.verify(tx.sig.encode('utf-8'), encoder=HexEncoder)
             return True
         except BadSignatureError:
             log.error("Verification Failed! Signature verification failed")

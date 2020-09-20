@@ -95,14 +95,14 @@ class Transaction:
             itemList.append(txInput.toString())
         for txOutput in self.txOutputs:
             itemList.append(txOutput.toString())
+        # print(''.join(itemList))
         return (''.join(itemList)).encode('utf-8')
 
     def sign(self, signingKey: SigningKey):
         msg = self.getMessage()
-        # print(type(signingKey.sign(msg, encoder=HexEncoder)))
-        self.sig = str(signingKey.sign(msg, encoder=HexEncoder).signature.hex())
-        # verifyKey = signingKey.verify_key
-        # verifyKey.verify(self.sig, encoder=HexEncoder)
+        self.sig = signingKey.sign(msg, encoder=HexEncoder).decode('utf-8')
+        verifyKey = signingKey.verify_key
+        verifyKey.verify(self.sig, encoder=HexEncoder)
 
     def toString(self) -> str:
         itemList = [str(self.txNumber)]

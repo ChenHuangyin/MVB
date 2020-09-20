@@ -33,6 +33,8 @@ class MVBTest:
         Tx1.sign(self.signingKeysList[0])
         Tx1.getNumber()
 
+
+
         Tx2Inputs = [TxInput(1, self.mvb.genesisBlock.tx.txOutputs[0])]
         Tx2Outputs = [TxOutput(500, self.pubKeysByteList[2]),
                       TxOutput(500, self.pubKeysByteList[3])]
