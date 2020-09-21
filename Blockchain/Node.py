@@ -44,6 +44,7 @@ class Node:
                     prevBlockTreeNode = blockTreeNode
                     break
             if not prevBlockTreeNode:
+                log.error("Received block failed! No pre hash found!")
                 return
             if self.verifyBlock(newBlock):
                 newBlockTreeNode = BlockTreeNode(prevBlockTreeNode, newBlock, prevBlockTreeNode.blockHeight + 1)

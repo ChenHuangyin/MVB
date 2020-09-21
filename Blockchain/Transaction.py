@@ -69,10 +69,8 @@ class Transaction:
         for txOutput in self.txOutputs:
             txOutputDict = {"value": txOutput.value, "pubkey": txOutput.pubKey.decode('utf-8')}
             outputList.append(txOutputDict)
-
         jsonObj["output"] = outputList
         jsonObj["sig"] = self.sig
-
         return jsonObj
 
     def getJson(self) -> str:
@@ -95,7 +93,6 @@ class Transaction:
             itemList.append(txInput.toString())
         for txOutput in self.txOutputs:
             itemList.append(txOutput.toString())
-        # print(''.join(itemList))
         return (''.join(itemList)).encode('utf-8')
 
     def sign(self, signingKey: SigningKey):
@@ -124,7 +121,3 @@ class Transaction:
 
         for outputJsonObj in txJsonObj['output']:
             self.txOutputs.append(TxOutput(jsonObj=outputJsonObj))
-
-
-
-

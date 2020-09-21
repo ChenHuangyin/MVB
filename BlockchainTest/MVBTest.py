@@ -1,3 +1,6 @@
+import time
+import random
+
 from BlockchainNetwork.MVB import *
 from threading import Thread
 
@@ -195,18 +198,19 @@ class MVBTest:
         pass
 
     def threadMining(self, node: Node, i):
-        # nowTime = time.time()
-        # while True:
-        #     node.receiveBroadcastBlock()
-        #     for tx in node.globalTxPool:
-        #         node.mineBlock(tx)
-        #         node.globalTxPool.remove(tx)
-        #     if time.time() - nowTime > 10:
-        #         break
-        for tx in node.globalTxPool:
-            node.mineBlock(tx)
-        node.globalTxPool = []
-        node.saveToFile()
+        nowTime = time.time()
+        while True:
+            sleep(random.uniform(0, 2))
+            node.receiveBroadcastBlock()
+            for tx in node.globalTxPool:
+                node.mineBlock(tx)
+                node.globalTxPool.remove(tx)
+            if time.time() - nowTime > 20:
+                break
+        # for tx in node.globalTxPool:
+        #     node.mineBlock(tx)
+        # node.globalTxPool = []
+        # node.saveToFile()
 
     def createTxJsonFile(self, FILENAME: str, txList: List[Transaction]):
         txListJsonObj = {'txList': []}

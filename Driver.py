@@ -2,7 +2,7 @@ from BlockchainTest.MVBTest import *
 import random
 
 if __name__ == '__main__':
-    Test1 = MVBTest(1, 15)  # MVBTest(nodes cnt, Keys cnt)
+    Test1 = MVBTest(5, 15)  # MVBTest(nodes cnt, Keys cnt)
 
     Test1.doubleSpendTest()
     sleep(random.random())
