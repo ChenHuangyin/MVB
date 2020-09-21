@@ -37,21 +37,22 @@ class Node:
         if self.receivedBlockQueue.empty():
             return
         else:
-            newBlock = self.receivedBlockQueue.get()
-            prevBlockTreeNode = None
-            for blockTreeNode in self.ledger:
-                if self.__verifyBlockPrevHash(blockTreeNode.nowBlock, newBlock):
-                    prevBlockTreeNode = blockTreeNode
-                    break
-            if not prevBlockTreeNode:
-                log.error("Received block failed! No pre hash found!")
-                return
-            if not self.__verifyTxNotOnBlockchain(newBlock.tx):
-                log.error("Received block is already on the ledger")
-            if self.verifyBlock(newBlock):
-                newBlockTreeNode = BlockTreeNode(prevBlockTreeNode, newBlock, prevBlockTreeNode.blockHeight + 1)
-                self.ledger.append(newBlockTreeNode)
-                self.__updateLongestChain(newBlockTreeNode)
+            while not self.receivedBlockQueue.empty():
+                newBlock = self.receivedBlockQueue.get()
+                prevBlockTreeNode = None
+                for blockTreeNode in self.ledger:
+                    if self.__verifyBlockPrevHash(blockTreeNode.nowBlock, newBlock):
+                        prevBlockTreeNode = blockTreeNode
+                        break
+                if not prevBlockTreeNode:
+                    log.error("Received block failed! No pre hash found!")
+                    return
+                if not self.__verifyTxNotOnBlockchain(newBlock.tx):
+                    log.error("Received block is already on the ledger")
+                if self.verifyBlock(newBlock):
+                    newBlockTreeNode = BlockTreeNode(prevBlockTreeNode, newBlock, prevBlockTreeNode.blockHeight + 1)
+                    self.ledger.append(newBlockTreeNode)
+                    self.__updateLongestChain(newBlockTreeNode)
 
     def mineBlock(self, tx: Transaction) -> None:  # mine a new block with the tx
         # tx not valid
@@ -67,7 +68,6 @@ class Node:
         prevHash = sha256(prevBlock.nowBlock.toString().encode('utf-8')).hexdigest()
         txAndPrevHashMsg = tx.toString() + prevHash
         nonce = 0
-        blockMessage = ""
         while int(blockPow, base=16) > hashTarget:
             blockMessage = txAndPrevHashMsg + str(nonce)
             blockPow = sha256(blockMessage.encode('utf-8')).hexdigest()
@@ -84,8 +84,8 @@ class Node:
             2. Ensure the transaction is validly structured
         """
         __flag = self.__verifyTxNotOnBlockchain(tx) and self.__verifyTxStructure(tx)
-        if not __flag:
-            log.error("Transaction Verification Failed")
+        # if not __flag:
+        #     log.error("Transaction Verification Failed")
         return __flag
 
     def verifyBlock(self, newBlock: Block) -> bool:  # verify a block
@@ -269,6 +269,6 @@ class Node:
         prevEncode = prevBlock.toString().encode('utf-8')
         prevHash = sha256(prevEncode).hexdigest()
         __flag = prevHash == newBlock.prev
-        if not __flag:
-            log.error("Verification Failed! Prev Hash is not satisfied")
+        # if not __flag:
+        #     log.error("Verification Failed! Prev Hash is not satisfied")
         return __flag

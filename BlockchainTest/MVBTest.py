@@ -21,6 +21,10 @@ class MVBTest:
         self.mvb.generateGenesisBlock(self.pubKeysByteList)
         self.mvb.initialNodes(initialNodeCnt)
 
+        for i, node in enumerate(self.mvb.networkNodes):
+            nodeThread = Thread(target=self.threadMining, args=(node, 1))
+            nodeThread.start()
+
     def doubleSpendTest(self):
         """
             txOutputs is the genesis output.
@@ -49,9 +53,9 @@ class MVBTest:
         self.mvb.txWaitingPool += self.readTxFromFile('DoubleSpendTestTx.json')
 
         self.mvb.broadcastTxPools()
-        for i, node in enumerate(self.mvb.networkNodes):
-            nodeThread = Thread(target=self.threadMining, args=(node, 1))
-            nodeThread.start()
+        # for i, node in enumerate(self.mvb.networkNodes):
+        #     nodeThread = Thread(target=self.threadMining, args=(node, 1))
+        #     nodeThread.start()
 
     def inputOutputSumTest(self):
         log.info("--------------------Input output sum test now started-------------------")
@@ -87,9 +91,9 @@ class MVBTest:
 
         self.mvb.txWaitingPool += [Tx3, Tx4]
         self.mvb.broadcastTxPools()
-        for i, node in enumerate(self.mvb.networkNodes):
-            nodeThread = Thread(target=self.threadMining, args=(node, 1))
-            nodeThread.start()
+        # for i, node in enumerate(self.mvb.networkNodes):
+        #     nodeThread = Thread(target=self.threadMining, args=(node, 1))
+        #     nodeThread.start()
 
     def sigVerifyTest(self):
         log.info("--------------------Signature verify test now started-------------------")
@@ -120,9 +124,9 @@ class MVBTest:
 
         self.mvb.txWaitingPool += [Tx5, Tx6]
         self.mvb.broadcastTxPools()
-        for i, node in enumerate(self.mvb.networkNodes):
-            nodeThread = Thread(target=self.threadMining, args=(node, 1))
-            nodeThread.start()
+        # for i, node in enumerate(self.mvb.networkNodes):
+        #     nodeThread = Thread(target=self.threadMining, args=(node, 1))
+        #     nodeThread.start()
 
     def badStructureTest(self):
         pass
@@ -156,9 +160,9 @@ class MVBTest:
 
         self.mvb.txWaitingPool += [Tx5, Tx6]
         self.mvb.broadcastTxPools()
-        for i, node in enumerate(self.mvb.networkNodes):
-            nodeThread = Thread(target=self.threadMining, args=(node, 1))
-            nodeThread.start()
+        # for i, node in enumerate(self.mvb.networkNodes):
+        #     nodeThread = Thread(target=self.threadMining, args=(node, 1))
+        #     nodeThread.start()
 
     def txInputsExistTest(self):
         log.info("--------------------Transaction inputs exist test now started-------------------")
@@ -200,12 +204,13 @@ class MVBTest:
     def threadMining(self, node: Node, i):
         nowTime = time.time()
         while True:
-            sleep(random.uniform(0, 1))
+            sleep(random.uniform(0, 0.1))
             node.receiveBroadcastBlock()
             for tx in node.globalTxPool:
+                # print(tx.getJsonObj())
                 node.mineBlock(tx)
                 node.globalTxPool.remove(tx)
-            if time.time() - nowTime > 20:
+            if time.time() - nowTime > 60:
                 break
         # for tx in node.globalTxPool:
         #     node.mineBlock(tx)
