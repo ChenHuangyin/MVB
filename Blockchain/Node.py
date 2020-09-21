@@ -30,7 +30,7 @@ class Node:
 
     def broadcastNewBlock(self, newBlock: Block) -> None:  # broadcast the new mined block to the whole network
         for networkNode in self.allNodeList:
-            if networkNode != self:
+            if networkNode.id != self.id:
                 networkNode.receivedBlockQueue.put(newBlock)
 
     def receiveBroadcastBlock(self) -> None:
@@ -46,25 +46,34 @@ class Node:
             if not prevBlockTreeNode:
                 log.error("Received block failed! No pre hash found!")
                 return
+            if not self.__verifyTxNotOnBlockchain(newBlock.tx):
+                log.error("Received block is already on the ledger")
             if self.verifyBlock(newBlock):
                 newBlockTreeNode = BlockTreeNode(prevBlockTreeNode, newBlock, prevBlockTreeNode.blockHeight + 1)
                 self.ledger.append(newBlockTreeNode)
                 self.__updateLongestChain(newBlockTreeNode)
 
     def mineBlock(self, tx: Transaction) -> None:  # mine a new block with the tx
+        # tx not valid
         if not self.verifyTx(tx):
+            # because this transaction is already in the ledger
+            if not self.__verifyTxNotOnBlockchain(tx):
+                log.error("The mined block is already in the ledger")
             return
-        blockPow = hex(self.miningDifficulty + 1)
-        hashTarget = hex(self.miningDifficulty)
+        blockPow = str(self.miningDifficulty + 1)
+        hashTarget = self.miningDifficulty
         prevBlock = self.latestBlockTreeNode
 
         prevHash = sha256(prevBlock.nowBlock.toString().encode('utf-8')).hexdigest()
         txAndPrevHashMsg = tx.toString() + prevHash
         nonce = 0
-        while blockPow > hashTarget:
+        blockMessage = ""
+        while int(blockPow, base=16) > hashTarget:
             blockMessage = txAndPrevHashMsg + str(nonce)
             blockPow = sha256(blockMessage.encode('utf-8')).hexdigest()
             nonce += 1
+        nonce -= 1
+
         newBlock = Block(tx, prevHash, nonce, blockPow)
         newBlockTreeNode = BlockTreeNode(prevBlock, newBlock, self.latestBlockTreeNode.blockHeight + 1)
         self.__updateNewMinedBlock(newBlock, newBlockTreeNode)
@@ -82,8 +91,7 @@ class Node:
     def verifyBlock(self, newBlock: Block) -> bool:  # verify a block
         """
             1. Verify the proof-of-work
-            2. Verify the prev hash
-            3. Validate the transaction in the block
+            2. Validate the transaction in the block
         """
         __flag = self.__verifyBlockPow(newBlock) and self.verifyTx(newBlock.tx)
         if not __flag:
@@ -143,7 +151,7 @@ class Node:
         pBlock = self.latestBlockTreeNode
         while pBlock:
             if tx.txNumber == pBlock.nowBlock.tx.txNumber:
-                log.error("Verification Failed! Tx is already on the blockchain")
+                # log.error("Verification Failed! Tx is already on the blockchain")
                 return False
             pBlock = pBlock.prevBlockTreeNode
         return True
@@ -244,10 +252,15 @@ class Node:
 
     def __verifyBlockPow(self, newBlock: Block) -> bool:
         blockMsg = newBlock.tx.toString() + newBlock.prev + str(newBlock.nonce)
+        # print(newBlock.tx.toString())
+        # print(newBlock.prev)
+        # print(newBlock.nonce)
+        # print(blockMsg)
         blockPow = sha256(blockMsg.encode('utf-8')).hexdigest()
         if newBlock.pow != str(blockPow):
+            log.error("Verification Failed! The pow does not match the message")
             return False
-        __flag = newBlock.pow <= 0x07FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+        __flag = int(newBlock.pow, base=16) <= 0x07FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
         if not __flag:
             log.error("Verification Failed! The pow is not satisfied")
         return __flag

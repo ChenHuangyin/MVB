@@ -45,7 +45,7 @@ class MVBTest:
         # print(Tx1.calculateNumber())
         # self.mvb.txWaitingPool += [Tx1, Tx2]
 
-        self.createTxJsonFile("DoubleSpendTestTx.json", [Tx1, Tx2])
+        self.createTxJsonFile("DoubleSpendTestTx.json", [Tx1])
         self.mvb.txWaitingPool += self.readTxFromFile('DoubleSpendTestTx.json')
 
         self.mvb.broadcastTxPools()
@@ -200,7 +200,7 @@ class MVBTest:
     def threadMining(self, node: Node, i):
         nowTime = time.time()
         while True:
-            sleep(random.uniform(0, 2))
+            sleep(random.uniform(0, 1))
             node.receiveBroadcastBlock()
             for tx in node.globalTxPool:
                 node.mineBlock(tx)
@@ -210,7 +210,7 @@ class MVBTest:
         # for tx in node.globalTxPool:
         #     node.mineBlock(tx)
         # node.globalTxPool = []
-        # node.saveToFile()
+        node.saveToFile()
 
     def createTxJsonFile(self, FILENAME: str, txList: List[Transaction]):
         txListJsonObj = {'txList': []}
