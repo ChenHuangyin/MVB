@@ -49,7 +49,7 @@ class MVBTest:
         # print(Tx1.calculateNumber())
         # self.mvb.txWaitingPool += [Tx1, Tx2]
 
-        self.createTxJsonFile("DoubleSpendTestTx.json", [Tx1])
+        self.createTxJsonFile("DoubleSpendTestTx.json", [Tx1, Tx2])
         self.mvb.txWaitingPool += self.readTxFromFile('DoubleSpendTestTx.json')
 
         self.mvb.broadcastTxPools()
@@ -195,8 +195,35 @@ class MVBTest:
         #     nodeThread = Thread(target=self.threadMining, args=(node, 1))
         #     nodeThread.start()
 
-    # def blockPOWTest(self):
+    def prevHashMatchTest(self):
+        log.info("--------------------Prev Hash test now started-------------------")
+        ledger = self.mvb.networkNodes[0].ledger
 
+        newTx5InputNumber = ledger[0].nowBlock.tx.txNumber
+        newTx5InputOutput = ledger[0].nowBlock.tx.txOutputs[12]
+        Tx5Inputs = [TxInput(newTx5InputNumber, newTx5InputOutput)]
+        Tx5Outputs = [TxOutput(250, self.pubKeysByteList[12]),
+                      TxOutput(750, self.pubKeysByteList[5])]
+
+        Tx5 = Transaction(0, Tx5Inputs, Tx5Outputs, None)
+        Tx5.sign(self.signingKeysList[12])
+        Tx5.calculateNumber()
+        self.mvb.networkNodes[1].mineInvalidBlock(Tx5, isInvalidPrevHash=True)
+
+    def blockPOWTest(self):
+        log.info("--------------------Block POW test now started-------------------")
+        ledger = self.mvb.networkNodes[0].ledger
+
+        newTx5InputNumber = ledger[0].nowBlock.tx.txNumber
+        newTx5InputOutput = ledger[0].nowBlock.tx.txOutputs[3]
+        Tx5Inputs = [TxInput(newTx5InputNumber, newTx5InputOutput)]
+        Tx5Outputs = [TxOutput(250, self.pubKeysByteList[3]),
+                      TxOutput(750, self.pubKeysByteList[5])]
+
+        Tx5 = Transaction(0, Tx5Inputs, Tx5Outputs, None)
+        Tx5.sign(self.signingKeysList[3])
+        Tx5.calculateNumber()
+        self.mvb.networkNodes[0].mineInvalidBlock(Tx5, isInvalidPOW=True)
 
     def threadMining(self, node: Node, i):
         nowTime = time.time()

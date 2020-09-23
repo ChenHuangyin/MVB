@@ -44,6 +44,9 @@ class Node:
                     if self.__verifyBlockPrevHash(blockTreeNode.nowBlock, newBlock):
                         prevBlockTreeNode = blockTreeNode
                         break
+                else:
+                    log.error("Verification Failed! Prev Hash is not satisfied")
+                    return
                 if not prevBlockTreeNode:
                     log.error("Received block failed! No pre hash found!")
                     return
@@ -53,6 +56,39 @@ class Node:
                     newBlockTreeNode = BlockTreeNode(prevBlockTreeNode, newBlock, prevBlockTreeNode.blockHeight + 1)
                     self.ledger.append(newBlockTreeNode)
                     self.__updateLongestChain(newBlockTreeNode)
+
+    # This function is only used for testing.
+    # mine a new invalid block with the tx, either prev_hash or pow is invalid
+    def mineInvalidBlock(self, tx: Transaction, isInvalidPrevHash = False, isInvalidPOW = False) -> None:
+        if not isInvalidPrevHash and not isInvalidPOW:
+            return
+        # tx not valid
+        if not self.verifyTx(tx):
+            # because this transaction is already in the ledger
+            if not self.__verifyTxNotOnBlockchain(tx):
+                log.error("The mined block is already in the ledger")
+            return
+        blockPow = str(self.miningDifficulty + 1)
+        hashTarget = self.miningDifficulty
+        prevBlock = self.latestBlockTreeNode
+
+        prevHash = sha256(prevBlock.nowBlock.toString().encode('utf-8')).hexdigest()
+        txAndPrevHashMsg = tx.toString() + prevHash
+        nonce = 0
+        while int(blockPow, base=16) > hashTarget:
+            blockMessage = txAndPrevHashMsg + str(nonce)
+            blockPow = sha256(blockMessage.encode('utf-8')).hexdigest()
+            nonce += 1
+        nonce -= 1
+
+        newBlock = Block(tx, prevHash, nonce, blockPow)
+
+        if isInvalidPrevHash:
+            newBlock.prev += "1"  # make the prev hash invalid
+        elif isInvalidPOW:
+            newBlock.pow = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
+        newBlockTreeNode = BlockTreeNode(prevBlock, newBlock, self.latestBlockTreeNode.blockHeight + 1)
+        self.__updateNewMinedBlock(newBlock, newBlockTreeNode)
 
     def mineBlock(self, tx: Transaction) -> None:  # mine a new block with the tx
         # tx not valid
@@ -260,6 +296,7 @@ class Node:
         if newBlock.pow != str(blockPow):
             log.error("Verification Failed! The pow does not match the message")
             return False
+        # print(newBlock.pow)
         __flag = int(newBlock.pow, base=16) <= 0x07FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
         if not __flag:
             log.error("Verification Failed! The pow is not satisfied")
@@ -269,6 +306,4 @@ class Node:
         prevEncode = prevBlock.toString().encode('utf-8')
         prevHash = sha256(prevEncode).hexdigest()
         __flag = prevHash == newBlock.prev
-        # if not __flag:
-        #     log.error("Verification Failed! Prev Hash is not satisfied")
         return __flag

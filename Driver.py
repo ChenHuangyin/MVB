@@ -13,6 +13,10 @@ if __name__ == '__main__':
     Test1.numberHashTest()
     sleep(random.uniform(0.5, 1))
     Test1.txInputsExistTest()
+    sleep(random.uniform(0.5, 1))
+    Test1.prevHashMatchTest()
+    sleep(random.uniform(0.5, 1))
+    Test1.blockPOWTest()
 
 
     # node1Json = Test1.mvb.networkNodes[0].getJson()
