@@ -128,9 +128,6 @@ class MVBTest:
         #     nodeThread = Thread(target=self.threadMining, args=(node, 1))
         #     nodeThread.start()
 
-    def badStructureTest(self):
-        pass
-
     def numberHashTest(self):
         log.info("--------------------Number hash test now started-------------------")
         ledger = self.mvb.networkNodes[0].ledger
@@ -194,12 +191,12 @@ class MVBTest:
 
         self.mvb.txWaitingPool += [Tx5, Tx6]
         self.mvb.broadcastTxPools()
-        for i, node in enumerate(self.mvb.networkNodes):
-            nodeThread = Thread(target=self.threadMining, args=(node, 1))
-            nodeThread.start()
+        # for i, node in enumerate(self.mvb.networkNodes):
+        #     nodeThread = Thread(target=self.threadMining, args=(node, 1))
+        #     nodeThread.start()
 
-    def broadcastBlockTest(self):
-        pass
+    # def blockPOWTest(self):
+
 
     def threadMining(self, node: Node, i):
         nowTime = time.time()
