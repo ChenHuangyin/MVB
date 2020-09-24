@@ -52,7 +52,7 @@ class MVB:
         self.txWaitingPool = []
 
     def __readGenesisTxFromJson(self):
-        with open("GenesisTx.json", 'r', encoding='utf-8') as f:
+        with open("./TxFiles/GenesisTx.json", 'r', encoding='utf-8') as f:
             genesisTxJsonObj = json.load(f)
         genesisTx = Transaction(jsonObj=genesisTxJsonObj)
         return genesisTx
@@ -64,9 +64,9 @@ class MVB:
         genesisTxOutputList = self.__generateGenesisTxOutputList(pubKeysByteList)
         genesisSigningKey = SigningKey.generate()
         genesisTx = Transaction(1, [], genesisTxOutputList, str(genesisSigningKey.sign('arbitrary msg'.encode("utf-8")).hex()))
-        genesisTxJsonObj = genesisTx.getJson()
-        with open("GenesisTx.json", 'w', encoding='utf-8') as f:
-            f.write(genesisTxJsonObj)
+        genesisTxJson = genesisTx.getJson()
+        with open("./TxFiles/GenesisTx.json", 'w+', encoding='utf-8') as f:
+            f.write(genesisTxJson)
         return genesisTx
 
     def __generateGenesisTxOutputList(self, pubKeysByteList: List[TxOutput]) -> List[TxOutput]:

@@ -18,7 +18,7 @@ class MVBTest:
         self.__initialSigningKeys()
         self.__initialPubKeys()
 
-        self.mvb.generateGenesisBlockFromJson()
+        self.mvb.generateGenesisBlock(self.pubKeysByteList)
         self.mvb.initialNodes(initialNodeCnt)
 
         for i, node in enumerate(self.mvb.networkNodes):
