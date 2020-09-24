@@ -56,7 +56,6 @@ class Node:
                     self.ledger.append(newBlockTreeNode)
                     self.__updateLongestChain(newBlockTreeNode)
 
-
     def mineInvalidBlock(self, tx: Transaction, isInvalidPrevHash = False, isInvalidPOW = False) -> None:
         """
             This function is only used for testing.

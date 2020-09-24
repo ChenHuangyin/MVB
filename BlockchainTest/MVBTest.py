@@ -18,7 +18,7 @@ class MVBTest:
         self.__initialSigningKeys()
         self.__initialPubKeys()
 
-        self.mvb.generateGenesisBlock(self.pubKeysByteList)
+        self.mvb.generateGenesisBlockFromJson()
         self.mvb.initialNodes(initialNodeCnt)
 
         for i, node in enumerate(self.mvb.networkNodes):
@@ -92,7 +92,7 @@ class MVBTest:
     def threadMining(self, node: Node, i):
         nowTime = time.time()
         while True:
-            sleep(random.uniform(0, 0.1))
+            sleep(random.uniform(0.05, 0.1))
             node.receiveBroadcastBlock()
             for tx in node.globalTxPool:
                 node.mineBlock(tx)
