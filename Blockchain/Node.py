@@ -22,7 +22,7 @@ class Node:
         self.latestBlockTreeNode: BlockTreeNode = BlockTreeNode(None, genesisBlock, 1)
         self.ledger: List[BlockTreeNode] = [self.latestBlockTreeNode]  # blocks array, type: List[BlockTreeNode]
         self.id: str = nodeID
-        self.allNodeList: List[Node] = []  # all the Nodes in the blockchain network
+        self.allNodeList: List[Node] = []  # all the Nodes in the Blockchain network
         self.receivedBlockQueue = Queue()  # storage the received Block from other Node
         self.miningDifficulty = 0x07FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
         self.globalTxPool: List[Transaction] = []
@@ -38,7 +38,6 @@ class Node:
         else:
             while not self.receivedBlockQueue.empty():
                 newBlock = self.receivedBlockQueue.get()
-                prevBlockTreeNode = None
                 for blockTreeNode in self.ledger:
                     if self.__verifyBlockPrevHash(blockTreeNode.nowBlock, newBlock):
                         prevBlockTreeNode = blockTreeNode
@@ -57,9 +56,12 @@ class Node:
                     self.ledger.append(newBlockTreeNode)
                     self.__updateLongestChain(newBlockTreeNode)
 
-    # This function is only used for testing.
-    # mine a new invalid block with the tx, either prev_hash or pow is invalid
+
     def mineInvalidBlock(self, tx: Transaction, isInvalidPrevHash = False, isInvalidPOW = False) -> None:
+        """
+            This function is only used for testing.
+            mine a new invalid block with the tx, either prev_hash or pow is invalid
+        """
         if not isInvalidPrevHash and not isInvalidPOW:
             return
         # tx not valid
@@ -119,20 +121,14 @@ class Node:
             1. Ensure the transaction is not already on the blockchain (included in an existing valid block)
             2. Ensure the transaction is validly structured
         """
-        __flag = self.__verifyTxNotOnBlockchain(tx) and self.__verifyTxStructure(tx)
-        # if not __flag:
-        #     log.error("Transaction Verification Failed")
-        return __flag
+        return self.__verifyTxNotOnBlockchain(tx) and self.__verifyTxStructure(tx)
 
     def verifyBlock(self, newBlock: Block) -> bool:  # verify a block
         """
             1. Verify the proof-of-work
             2. Validate the transaction in the block
         """
-        __flag = self.__verifyBlockPow(newBlock) and self.verifyTx(newBlock.tx)
-        # if not __flag:
-        #     log.error("Node " + self.id + " :" + "Received Block Verification Failed!")
-        return __flag
+        return self.__verifyBlockPow(newBlock) and self.verifyTx(newBlock.tx)
 
     def getJson(self):
         jsonObj = {"Blocks": []}
@@ -292,7 +288,6 @@ class Node:
         if newBlock.pow != str(blockPow):
             log.error("Node " + self.id + " :" + "Block Verification Failed! The pow does not match the message")
             return False
-        # print(newBlock.pow)
         __flag = int(newBlock.pow, base=16) <= 0x07FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
         if not __flag:
             log.error("Node " + self.id + " :" + "Block Verification Failed! The pow is not satisfied")

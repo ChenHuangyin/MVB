@@ -2,18 +2,29 @@ from BlockchainTest.MVBTest import *
 import random
 
 if __name__ == '__main__':
-    Test1 = MVBTest(8)  # MVBTest(nodes cnt, Keys cnt)
+    # initialize a blockchain test network with 8 nodes
+    Test = MVBTest(8)
+    sleep(random.uniform(0.5, 1))
 
-    Test1.doubleSpendTest()
+    Test.multipleValidTxTest()
     sleep(random.uniform(0.5, 1))
-    Test1.inputOutputSumTest()
+
+    Test.doubleSpendTest()
     sleep(random.uniform(0.5, 1))
-    Test1.sigVerifyTest()
+
+    Test.inputOutputSumTest()
     sleep(random.uniform(0.5, 1))
-    Test1.numberHashTest()
+
+    Test.sigVerifyTest()
     sleep(random.uniform(0.5, 1))
-    Test1.txInputsExistTest()
+
+    Test.numberHashTest()
     sleep(random.uniform(0.5, 1))
-    Test1.prevHashMatchTest()
+
+    Test.txInputsExistTest()
     sleep(random.uniform(0.5, 1))
-    Test1.blockPOWTest()
+
+    Test.prevHashMatchTest()
+    sleep(random.uniform(0.5, 1))
+
+    Test.blockPOWTest()
