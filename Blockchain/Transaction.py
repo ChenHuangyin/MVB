@@ -87,6 +87,15 @@ class Transaction:
         self.txNumber = sha256(''.join(itemList).encode('utf-8')).hexdigest()
         return self.txNumber
 
+    def getNumber(self):
+        itemList = []
+        for txInput in self.txInputs:
+            itemList.append(txInput.toString())
+        for txOutput in self.txOutputs:
+            itemList.append(txOutput.toString())
+        itemList.append(self.sig)
+        return sha256(''.join(itemList).encode('utf-8')).hexdigest()
+
     def getMessage(self):
         itemList = []
         for txInput in self.txInputs:

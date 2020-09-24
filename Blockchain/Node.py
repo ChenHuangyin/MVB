@@ -214,8 +214,8 @@ class Node:
     def __verifyTxNumberHash(self, tx: Transaction) -> bool:
         #  Ensure number hash is correct
         numberHash = tx.txNumber
-        nowHash = tx.calculateNumber()
-        __flag = tx.txNumber and nowHash == numberHash
+        nowHash = tx.getNumber()
+        __flag = tx.txNumber != '' and nowHash == numberHash
         if not __flag:
             log.error("Node " + self.id + " :" + "Tx Verification Failed! Number hash is not correct")
         return __flag
