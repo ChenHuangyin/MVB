@@ -17,9 +17,3 @@ if __name__ == '__main__':
     Test1.prevHashMatchTest()
     sleep(random.uniform(0.5, 1))
     Test1.blockPOWTest()
-
-
-    # node1Json = Test1.mvb.networkNodes[0].getJson()
-    # with open('node1.json', 'w', encoding='utf-8') as f:
-    #     f.write(node1Json)
-    # print(node1Json)
