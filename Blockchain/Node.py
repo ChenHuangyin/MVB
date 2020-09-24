@@ -44,13 +44,14 @@ class Node:
                         prevBlockTreeNode = blockTreeNode
                         break
                 else:
-                    log.error("Verification Failed! Prev Hash is not satisfied")
+                    log.error("Node " + self.id + " :" + "Block Verification Failed! Prev Hash is not satisfied")
                     return
                 if not prevBlockTreeNode:
-                    log.error("Received block failed! No pre hash found!")
+                    log.error("Node " + self.id + " :" + "Block Verification Failed! No pre hash found!")
                     return
                 if not self.__verifyTxNotOnBlockchain(newBlock.tx):
-                    log.error("Received block is already on the ledger")
+                    log.error("Node " + self.id + " :" + "Block Verification Failed! Received block is already on the ledger")
+                    return
                 if self.verifyBlock(newBlock):
                     newBlockTreeNode = BlockTreeNode(prevBlockTreeNode, newBlock, prevBlockTreeNode.blockHeight + 1)
                     self.ledger.append(newBlockTreeNode)
@@ -65,7 +66,7 @@ class Node:
         if not self.verifyTx(tx):
             # because this transaction is already in the ledger
             if not self.__verifyTxNotOnBlockchain(tx):
-                log.error("The mined block is already in the ledger")
+                log.error("Node " + self.id + " :" + "Tx Verification Failed! This Tx is already on the ledger")
             return
         blockPow = str(self.miningDifficulty + 1)
         hashTarget = self.miningDifficulty
@@ -94,7 +95,7 @@ class Node:
         if not self.verifyTx(tx):
             # because this transaction is already in the ledger
             if not self.__verifyTxNotOnBlockchain(tx):
-                log.error("The mined block is already in the ledger")
+                log.error("Node " + self.id + " :" + "Tx Verification Failed! This Tx is already on the ledger")
             return
         blockPow = str(self.miningDifficulty + 1)
         hashTarget = self.miningDifficulty
@@ -129,8 +130,8 @@ class Node:
             2. Validate the transaction in the block
         """
         __flag = self.__verifyBlockPow(newBlock) and self.verifyTx(newBlock.tx)
-        if not __flag:
-            log.error("Received Block Verification Failed!")
+        # if not __flag:
+        #     log.error("Node " + self.id + " :" + "Received Block Verification Failed!")
         return __flag
 
     def getJson(self):
@@ -216,7 +217,7 @@ class Node:
         nowHash = tx.calculateNumber()
         __flag = tx.txNumber and nowHash == numberHash
         if not __flag:
-            log.error("Verification Failed! Number hash is not correct")
+            log.error("Node " + self.id + " :" + "Tx Verification Failed! Number hash is not correct")
         return __flag
 
     def __verifyTxInputsNumber(self, tx: Transaction) -> bool:
@@ -240,7 +241,7 @@ class Node:
                 validInputCounter += 1
         __flag = validInputCounter == len(tx.txInputs)
         if not __flag:
-            log.error("Verification Failed! Inputs are not correct")
+            log.error("Node " + self.id + " :" + "Tx Verification Failed! Inputs are not correct")
         return __flag
 
     def __verifyTxPubKeyAndSig(self, tx: Transaction) -> bool:
@@ -250,7 +251,7 @@ class Node:
         senderPubKey: bytes = tx.txInputs[0].output.pubKey
         for txInput in tx.txInputs:
             if txInput.output.pubKey != senderPubKey:
-                log.error("Verification Failed! Input pubKey is not unique")
+                log.error("Node " + self.id + " :" + "Tx Verification Failed! Input pubKey is not unique")
                 return False
 
         verifyKey = VerifyKey(senderPubKey, HexEncoder)
@@ -258,7 +259,7 @@ class Node:
             verifyKey.verify(tx.sig.encode('utf-8'), encoder=HexEncoder)
             return True
         except BadSignatureError:
-            log.error("Verification Failed! Signature verification failed")
+            log.error("Node " + self.id + " :" + "Tx Verification Failed! Signature verification failed")
             return False
 
     def __verifyTxDoubleSpend(self, tx: Transaction) -> bool:
@@ -268,7 +269,7 @@ class Node:
             while pBlock:
                 for pBlockTxInput in pBlock.nowBlock.tx.txInputs:
                     if txInput.isEqual(pBlockTxInput):
-                        log.error("Verification Failed! Double spend detected")
+                        log.error("Node " + self.id + " :" + "Tx Verification Failed! Double spend detected")
                         return False
                 pBlock = pBlock.prevBlockTreeNode
             return True
@@ -282,19 +283,19 @@ class Node:
             outputSum += txOutput.value
         __flag = inputSum == outputSum
         if not __flag:
-            log.error("Verification Failed! Tx Inputs val sum is not equal to outputs sum")
+            log.error("Node " + self.id + " :" + "Tx Verification Failed! Tx Inputs val sum is not equal to outputs sum")
         return __flag
 
     def __verifyBlockPow(self, newBlock: Block) -> bool:
         blockMsg = newBlock.tx.toString() + newBlock.prev + str(newBlock.nonce)
         blockPow = sha256(blockMsg.encode('utf-8')).hexdigest()
         if newBlock.pow != str(blockPow):
-            log.error("Verification Failed! The pow does not match the message")
+            log.error("Node " + self.id + " :" + "Block Verification Failed! The pow does not match the message")
             return False
         # print(newBlock.pow)
         __flag = int(newBlock.pow, base=16) <= 0x07FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
         if not __flag:
-            log.error("Verification Failed! The pow is not satisfied")
+            log.error("Node " + self.id + " :" + "Block Verification Failed! The pow is not satisfied")
         return __flag
 
     def __verifyBlockPrevHash(self, prevBlock: Block, newBlock: Block) -> bool:

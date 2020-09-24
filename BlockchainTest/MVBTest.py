@@ -33,6 +33,7 @@ class MVBTest:
             When Tx2 is mined, the verification will be failed.
         """
         log.info("--------------------Double spend test now started-------------------")
+        log.info("A pair of invalid and valid transactions is added into GlobalTx Pool")
         # Tx1Inputs = [TxInput(self.mvb.genesisBlock.tx.txNumber, self.mvb.genesisBlock.tx.txOutputs[0])]
         # Tx1Outputs = [TxOutput(500, self.pubKeysByteList[0]),
         #               TxOutput(500, self.pubKeysByteList[1])]
@@ -59,6 +60,7 @@ class MVBTest:
 
     def inputOutputSumTest(self):
         log.info("--------------------Input output sum test now started-------------------")
+        log.info("A pair of valid and invalid Transactions is added into GlobalTx Pool")
         # ledger = self.mvb.networkNodes[0].ledger
         #
         # # sender is 1
@@ -98,6 +100,7 @@ class MVBTest:
 
     def sigVerifyTest(self):
         log.info("--------------------Signature verify test now started-------------------")
+        log.info("A pair of valid and invalid Transactions is added into GlobalTx Pool")
         # ledger = self.mvb.networkNodes[0].ledger
         #
         # # sender is 6
@@ -129,6 +132,7 @@ class MVBTest:
 
     def numberHashTest(self):
         log.info("--------------------Number hash test now started-------------------")
+        log.info("A pair of valid and invalid Transactions is added into GlobalTx Pool")
         # ledger = self.mvb.networkNodes[0].ledger
         #
         # # sender is 6
@@ -160,6 +164,7 @@ class MVBTest:
 
     def txInputsExistTest(self):
         log.info("--------------------Transaction inputs exist test now started-------------------")
+        log.info("A pair of valid and invalid Transactions is added into GlobalTx Pool")
         # ledger = self.mvb.networkNodes[0].ledger
         #
         # # sender is 6
@@ -195,6 +200,7 @@ class MVBTest:
 
     def prevHashMatchTest(self):
         log.info("--------------------Prev Hash test now started-------------------")
+        log.info("Node 2 broadcast a Block with invalid prev-hash to the other nodes")
         # ledger = self.mvb.networkNodes[0].ledger
         #
         # newTx5InputNumber = ledger[0].nowBlock.tx.txNumber
@@ -213,6 +219,7 @@ class MVBTest:
 
     def blockPOWTest(self):
         log.info("--------------------Block POW test now started-------------------")
+        log.info("Node 1 broadcast a Block with invalid POW to the other nodes")
         # ledger = self.mvb.networkNodes[0].ledger
         #
         # newTx5InputNumber = ledger[0].nowBlock.tx.txNumber
