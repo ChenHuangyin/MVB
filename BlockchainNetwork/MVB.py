@@ -38,10 +38,24 @@ class MVB:
         log.info("Genesis block have been generated successfully")
         # sleep(2)
 
+    def generateGenesisBlockFromJson(self) -> None:
+        genesisTx = self.__readGenesisTxFromJson()
+        genesisPrev = sha256("arbitrary data".encode('utf-8')).hexdigest()
+        genesisNonce = 0
+        genesisPow = 0
+        self.genesisBlock = Block(genesisTx, genesisPrev, genesisNonce, genesisPow)
+        log.info("Genesis block have been generated successfully")
+
     def broadcastTxPools(self):
         for node in self.networkNodes:
             node.globalTxPool += self.txWaitingPool
         self.txWaitingPool = []
+
+    def __readGenesisTxFromJson(self):
+        with open("GenesisTx.json", 'r', encoding='utf-8') as f:
+            genesisTxJsonObj = json.load(f)
+        genesisTx = Transaction(jsonObj=genesisTxJsonObj)
+        return genesisTx
 
     def __generateGenesisTx(self, pubKeysByteList: List[TxOutput]) -> Transaction:
         """
@@ -50,6 +64,9 @@ class MVB:
         genesisTxOutputList = self.__generateGenesisTxOutputList(pubKeysByteList)
         genesisSigningKey = SigningKey.generate()
         genesisTx = Transaction(1, [], genesisTxOutputList, str(genesisSigningKey.sign('arbitrary msg'.encode("utf-8")).hex()))
+        genesisTxJsonObj = genesisTx.getJson()
+        with open("GenesisTx.json", 'w', encoding='utf-8') as f:
+            f.write(genesisTxJsonObj)
         return genesisTx
 
     def __generateGenesisTxOutputList(self, pubKeysByteList: List[TxOutput]) -> List[TxOutput]:
@@ -57,3 +74,7 @@ class MVB:
         for pubKeyByte in pubKeysByteList:
             genesisTxOutputList.append(TxOutput(1000, pubKeyByte))
         return genesisTxOutputList
+
+
+
+

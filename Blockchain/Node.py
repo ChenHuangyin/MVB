@@ -18,7 +18,6 @@ log = logging.getLogger(__name__)
 
 class Node:
     def __init__(self, genesisBlock: Block = None, nodeID: str = None) -> None:
-
         # initial the first block into genesisBlock
         self.latestBlockTreeNode: BlockTreeNode = BlockTreeNode(None, genesisBlock, 1)
         self.ledger: List[BlockTreeNode] = [self.latestBlockTreeNode]  # blocks array, type: List[BlockTreeNode]
@@ -142,7 +141,7 @@ class Node:
 
     def saveToFile(self):
         nodeJson = self.getJson()
-        with open("Node-" + str(self.id) + '.json', 'w', encoding='utf-8') as f:
+        with open("./NodesLedger/Node-" + str(self.id) + '.json', 'w', encoding='utf-8') as f:
             f.write(nodeJson)
 
     def __updateNewMinedBlock(self, newBlock: Block, newBlockTreeNode: BlockTreeNode) -> None:
@@ -288,10 +287,6 @@ class Node:
 
     def __verifyBlockPow(self, newBlock: Block) -> bool:
         blockMsg = newBlock.tx.toString() + newBlock.prev + str(newBlock.nonce)
-        # print(newBlock.tx.toString())
-        # print(newBlock.prev)
-        # print(newBlock.nonce)
-        # print(blockMsg)
         blockPow = sha256(blockMsg.encode('utf-8')).hexdigest()
         if newBlock.pow != str(blockPow):
             log.error("Verification Failed! The pow does not match the message")

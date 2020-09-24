@@ -10,15 +10,15 @@ log = logging.getLogger(__name__)
 
 
 class MVBTest:
-    def __init__(self, initialNodeCnt, initialOutputCnt):
+    def __init__(self, initialNodeCnt):
         self.mvb = MVB()
         self.signingKeysList = []
         self.pubKeysList = []
         self.pubKeysByteList = []
-        self.__initialSigningKeys(initialOutputCnt)
+        self.__initialSigningKeys()
         self.__initialPubKeys()
 
-        self.mvb.generateGenesisBlock(self.pubKeysByteList)
+        self.mvb.generateGenesisBlockFromJson()
         self.mvb.initialNodes(initialNodeCnt)
 
         for i, node in enumerate(self.mvb.networkNodes):
@@ -49,8 +49,8 @@ class MVBTest:
         # print(Tx1.calculateNumber())
         # self.mvb.txWaitingPool += [Tx1, Tx2]
 
-        self.createTxJsonFile("DoubleSpendTestTx.json", [Tx1, Tx2])
-        self.mvb.txWaitingPool += self.readTxFromFile('DoubleSpendTestTx.json')
+        self.createTxJsonFile("./TxFiles/DoubleSpendTestTx.json", [Tx1, Tx2])
+        self.mvb.txWaitingPool += self.readTxFromFile('./TxFiles/DoubleSpendTestTx.json')
 
         self.mvb.broadcastTxPools()
         # for i, node in enumerate(self.mvb.networkNodes):
@@ -89,7 +89,8 @@ class MVBTest:
         Tx4.sign(self.signingKeysList[1])
         Tx4.calculateNumber()
 
-        self.mvb.txWaitingPool += [Tx3, Tx4]
+        self.createTxJsonFile("./TxFiles/InputOutputSumTestTx.json", [Tx3, Tx4])
+        self.mvb.txWaitingPool += self.readTxFromFile('./TxFiles/InputOutputSumTestTx.json')
         self.mvb.broadcastTxPools()
         # for i, node in enumerate(self.mvb.networkNodes):
         #     nodeThread = Thread(target=self.threadMining, args=(node, 1))
@@ -122,7 +123,8 @@ class MVBTest:
         Tx6.sign(self.signingKeysList[6])
         Tx6.calculateNumber()
 
-        self.mvb.txWaitingPool += [Tx5, Tx6]
+        self.createTxJsonFile("./TxFiles/SigVerifyTestTx.json", [Tx5, Tx6])
+        self.mvb.txWaitingPool += self.readTxFromFile('./TxFiles/SigVerifyTestTx.json')
         self.mvb.broadcastTxPools()
         # for i, node in enumerate(self.mvb.networkNodes):
         #     nodeThread = Thread(target=self.threadMining, args=(node, 1))
@@ -155,7 +157,8 @@ class MVBTest:
         # wrong transaction number
         Tx6.txNumber = 1234
 
-        self.mvb.txWaitingPool += [Tx5, Tx6]
+        self.createTxJsonFile("./TxFiles/NumberHashTestTx.json", [Tx5, Tx6])
+        self.mvb.txWaitingPool += self.readTxFromFile('./TxFiles/NumberHashTestTx.json')
         self.mvb.broadcastTxPools()
         # for i, node in enumerate(self.mvb.networkNodes):
         #     nodeThread = Thread(target=self.threadMining, args=(node, 1))
@@ -189,7 +192,8 @@ class MVBTest:
         # non-exist input
         Tx6.txInputs[0].output.value = 333
 
-        self.mvb.txWaitingPool += [Tx5, Tx6]
+        self.createTxJsonFile("./TxFiles/TxInputsExistTestTx.json", [Tx5, Tx6])
+        self.mvb.txWaitingPool += self.readTxFromFile('./TxFiles/TxInputsExistTestTx.json')
         self.mvb.broadcastTxPools()
         # for i, node in enumerate(self.mvb.networkNodes):
         #     nodeThread = Thread(target=self.threadMining, args=(node, 1))
@@ -208,7 +212,10 @@ class MVBTest:
         Tx5 = Transaction(0, Tx5Inputs, Tx5Outputs, None)
         Tx5.sign(self.signingKeysList[12])
         Tx5.calculateNumber()
-        self.mvb.networkNodes[1].mineInvalidBlock(Tx5, isInvalidPrevHash=True)
+        self.createTxJsonFile("./TxFiles/PrevHashMatchTestTx.json", [Tx5])
+        txList = self.readTxFromFile('./TxFiles/PrevHashMatchTestTx.json')
+
+        self.mvb.networkNodes[1].mineInvalidBlock(txList[0], isInvalidPrevHash=True)
 
     def blockPOWTest(self):
         log.info("--------------------Block POW test now started-------------------")
@@ -223,7 +230,10 @@ class MVBTest:
         Tx5 = Transaction(0, Tx5Inputs, Tx5Outputs, None)
         Tx5.sign(self.signingKeysList[3])
         Tx5.calculateNumber()
-        self.mvb.networkNodes[0].mineInvalidBlock(Tx5, isInvalidPOW=True)
+        self.createTxJsonFile("./TxFiles/BlockPOWTestTx.json", [Tx5])
+        txList = self.readTxFromFile('./TxFiles/BlockPOWTestTx.json')
+
+        self.mvb.networkNodes[0].mineInvalidBlock(txList[0], isInvalidPOW=True)
 
     def threadMining(self, node: Node, i):
         nowTime = time.time()
@@ -233,8 +243,9 @@ class MVBTest:
             for tx in node.globalTxPool:
                 # print(tx.getJsonObj())
                 node.mineBlock(tx)
-                node.globalTxPool.remove(tx)
-            if time.time() - nowTime > 60:
+                if node.globalTxPool:
+                    node.globalTxPool.remove(tx)
+            if time.time() - nowTime > 15:
                 break
         # for tx in node.globalTxPool:
         #     node.mineBlock(tx)
@@ -257,13 +268,20 @@ class MVBTest:
             txList.append(newTx)
         return txList
 
-    def __initialSigningKeys(self, cnt: int) -> None:
+    def __initialSigningKeys(self) -> None:
         """
             Generate and update signingKeys List for the network
         """
-        for _ in range(cnt):
-            self.signingKeysList.append(SigningKey.generate())
-        log.info(str(cnt) + " signing keys have been generated successfully")
+        seedStr = '0' * 31
+        seedNum = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
+        seedList = []
+        for i in range(15):
+            seed = seedStr + seedNum[i]
+            seedList.append(seed.encode('utf-8'))
+
+        for seed in seedList:
+            self.signingKeysList.append(SigningKey(seed))
+        log.info("15 signing keys have been generated successfully")
         # sleep(2)
 
     def __initialPubKeys(self):
